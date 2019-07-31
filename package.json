@@ -1,8 +1,8 @@
 {
-    "dependencies": {
-        "dotenv": "^6.0.0",
-        "truffle": "4.1.11",
-        "truffle-hdwallet-provider": "^0.0.5",
-        "zeppelin-solidity": "1.10.0"
-    }
+	"dependencies": {
+		"dotenv": "8.0.0",
+		"truffle": "5.0.29",
+		"truffle-hdwallet-provider": "1.0.15",
+		"@openzeppelin/contracts": "2.3.0"
+	}
 }
