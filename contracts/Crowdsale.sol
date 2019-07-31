@@ -6,14 +6,15 @@ import "./StaffUtil.sol";
 import "./interfaces/ERC20Token.sol";
 import "./interfaces/IDiscountPhases.sol";
 import "./interfaces/IDiscountStructs.sol";
-import "./PromoCodes.sol";
+import "./interfaces/IPromoCodes.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
 contract Crowdsale is StaffUtil {
 	using SafeMath for uint256;
 
 	ERC20Token tokenContract;
-	PromoCodes promoCodesContract;
+	IPromoCodes promoCodesContract;
 	IDiscountPhases discountPhasesContract;
 	IDiscountStructs discountStructsContract;
 
@@ -115,7 +116,7 @@ contract Crowdsale is StaffUtil {
 
 		// address args
 		ethFundsWallet = addressArgs[0];
-		promoCodesContract = PromoCodes(addressArgs[1]);
+		promoCodesContract = IPromoCodes(addressArgs[1]);
 		discountPhasesContract = IDiscountPhases(addressArgs[2]);
 		discountStructsContract = IDiscountStructs(addressArgs[3]);
 
