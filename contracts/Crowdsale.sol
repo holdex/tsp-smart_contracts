@@ -3,7 +3,7 @@ pragma solidity ^0.5.0;
 
 import "./Staff.sol";
 import "./StaffUtil.sol";
-import "./Token.sol";
+import "./interfaces/ERC20Token.sol";
 import "./DiscountPhases.sol";
 import "./DiscountStructs.sol";
 import "./PromoCodes.sol";
@@ -12,7 +12,7 @@ import "./PromoCodes.sol";
 contract Crowdsale is StaffUtil {
 	using SafeMath for uint256;
 
-	Token tokenContract;
+	ERC20Token tokenContract;
 	PromoCodes promoCodesContract;
 	DiscountPhases discountPhasesContract;
 	DiscountStructs discountStructsContract;
@@ -172,7 +172,7 @@ contract Crowdsale is StaffUtil {
 		return soldTokens.sub(claimedSoldTokens).add(bonusTokens.sub(claimedBonusTokens)).add(sentTokens.sub(claimedSentTokens));
 	}
 
-	function setTokenContract(Token token) external onlyOwner {
+	function setTokenContract(ERC20Token token) external onlyOwner {
 		require(token.decimals() == tokenDecimals);
 		require(address(tokenContract) == address(0));
 		require(address(token) != address(0));
