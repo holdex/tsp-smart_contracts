@@ -1,3 +1,8 @@
+/**
+ * More information about configuration can be found at:
+ *
+ * truffleframework.com/docs/advanced/configuration
+ */
 const HDWalletProvider = require("truffle-hdwallet-provider");
 require('dotenv').config();
 
@@ -25,12 +30,17 @@ console.log("===================================================================
 
 module.exports = {
     networks: {
+        development: {
+            host: "127.0.0.1",
+            port: 7545,
+            network_id: "5777",
+        },
         remote: {
-            provider: function () {
-                return new HDWalletProvider(process.env.MNENOMIC, process.env.NODE_URL, process.env.ACCOUNT)
-            },
+            provider: () => new HDWalletProvider(process.env.MNENOMIC, process.env.NODE_URL, process.env.ACCOUNT),
             network_id: process.env.NETWORK_ID,
-            gasPrice: process.env.GAS_PRICE_IN_GWEI * (10 ** 9)
+            gas: 6700000,
+            gasPrice: process.env.GAS_PRICE_IN_GWEI * (10 ** 9),
+            confirmations: 2,
         },
     }
 };

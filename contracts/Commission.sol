@@ -1,17 +1,17 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 
 import "./StaffUtil.sol";
 import "./Staff.sol";
-import "zeppelin-solidity/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
 contract Commission is StaffUtil {
 	using SafeMath for uint256;
 
 	address public crowdsale;
-	address public ethFundsWallet;
-	address[] public txFeeAddresses;
+	address payable public ethFundsWallet;
+	address payable[] public txFeeAddresses;
 	uint256[] public txFeeNumerator;
 	uint256 public txFeeDenominator;
 	uint256 public txFeeCapInWei;
@@ -19,9 +19,9 @@ contract Commission is StaffUtil {
 
 	constructor(
 		Staff _staffContract,
-		address _ethFundsWallet,
-		address[] _txFeeAddresses,
-		uint256[] _txFeeNumerator,
+		address payable _ethFundsWallet,
+		address payable[] memory _txFeeAddresses,
+		uint256[] memory _txFeeNumerator,
 		uint256 _txFeeDenominator,
 		uint256 _txFeeCapInWei
 	) StaffUtil(_staffContract) public {
@@ -44,7 +44,7 @@ contract Commission is StaffUtil {
 		txFeeCapInWei = _txFeeCapInWei;
 	}
 
-	function() public payable {
+	function() external payable {
 		require(msg.sender == crowdsale);
 
 		uint256 fundsToTransfer = msg.value;

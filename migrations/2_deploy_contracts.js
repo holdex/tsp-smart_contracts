@@ -1,3 +1,4 @@
+const BigNumber = require('bignumber.js');
 const Staff = artifacts.require("./Staff.sol");
 const Crowdsale = artifacts.require("./Crowdsale.sol");
 // const Commission = artifacts.require("./Commission.sol");
@@ -27,17 +28,17 @@ module.exports = function (deployer) {
         // ))
         .then(() => deployer.deploy(Crowdsale,
             [
-                parseInt(process.env.START_DATE),
-                parseInt(process.env.CROWDSALE_START_DATE),
-                parseInt(process.env.END_DATE),
-                parseInt(process.env.TOKEN_DECIMALS),
-                parseInt(process.env.TOKEN_RATE),
-                parseInt(process.env.TOKENS_FOR_SALE_CAP) * (10 ** parseInt(process.env.TOKEN_DECIMALS)),
-                parseFloat(web3.toWei(parseFloat(process.env.MIN_PURCHASE_IN_ETH), 'ether')),
-                parseFloat(web3.toWei(parseFloat(process.env.MAX_INVESTOR_CONTRIBUTION_IN_ETH), 'ether')),
-                parseInt(process.env.PURCHASED_TOKENS_CLAIM_DATE),
-                parseInt(process.env.BONUS_TOKENS_CLAIM_DATE),
-                parseInt(process.env.REFERRAL_BONUS_PERCENT)
+                new BigNumber(process.env.START_DATE),
+                new BigNumber(process.env.CROWDSALE_START_DATE),
+                new BigNumber(process.env.END_DATE),
+                new BigNumber(process.env.TOKEN_DECIMALS),
+                new BigNumber(process.env.TOKEN_RATE),
+                new BigNumber(process.env.TOKENS_FOR_SALE_CAP).multipliedBy(10 ** parseInt(process.env.TOKEN_DECIMALS)).toFixed(),
+                web3.utils.toWei(process.env.MIN_PURCHASE_IN_ETH, 'ether'),
+                web3.utils.toWei(process.env.MAX_INVESTOR_CONTRIBUTION_IN_ETH, 'ether'),
+                new BigNumber(process.env.PURCHASED_TOKENS_CLAIM_DATE),
+                new BigNumber(process.env.BONUS_TOKENS_CLAIM_DATE),
+                new BigNumber(process.env.REFERRAL_BONUS_PERCENT)
             ],
             [
                 process.env.ETH_FUNDS_WALLET, //Commission.address,
@@ -91,7 +92,6 @@ module.exports = function (deployer) {
             console.log("DISCOUNT_PHASES_CONTRACT_ADDRESS=" + DiscountPhases.address);
             console.log("DISCOUNT_STRUCTS_CONTRACT_ADDRESS=" + DiscountStructs.address);
             console.log("===============================================================");
-            throw "finished!";
         })
         .catch((e) => console.log("error:", e));
 };

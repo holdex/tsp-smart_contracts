@@ -1,10 +1,10 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 
 import "./Staff.sol";
 import "./StaffUtil.sol";
 import "./Crowdsale.sol";
-import "zeppelin-solidity/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
 contract PromoCodes is StaffUtil {
@@ -36,7 +36,7 @@ contract PromoCodes is StaffUtil {
 	function setCrowdsale(Crowdsale _crowdsale) external onlyOwner {
 		require(crowdsale == address(0));
 		require(_crowdsale.staffContract() == staffContract);
-		crowdsale = _crowdsale;
+		crowdsale = address(_crowdsale);
 	}
 
 	function applyBonusAmount(address _investor, uint256 _purchasedAmount, bytes32 _promoCode) public onlyCrowdsale returns (uint256) {
@@ -51,7 +51,7 @@ contract PromoCodes is StaffUtil {
 		return _purchasedAmount.mul(promoCodes[_promoCode].percent).div(100);
 	}
 
-	function calculateBonusAmount(address _investor, uint256 _purchasedAmount, bytes32 _promoCode) public constant returns (uint256) {
+	function calculateBonusAmount(address _investor, uint256 _purchasedAmount, bytes32 _promoCode) public view returns (uint256) {
 		if (promoCodes[_promoCode].percent == 0
 		|| promoCodes[_promoCode].investors[_investor]
 		|| promoCodes[_promoCode].uses == promoCodes[_promoCode].maxUses) {
@@ -60,7 +60,7 @@ contract PromoCodes is StaffUtil {
 		return _purchasedAmount.mul(promoCodes[_promoCode].percent).div(100);
 	}
 
-	function addPromoCode(string _name, bytes32 _code, uint256 _maxUses, uint8 _percent) public onlyOwnerOrStaff {
+	function addPromoCode(string memory _name, bytes32 _code, uint256 _maxUses, uint8 _percent) public onlyOwnerOrStaff {
 		require(bytes(_name).length > 0);
 		require(_code[0] != 0);
 		require(_percent > 0 && _percent <= 100);
