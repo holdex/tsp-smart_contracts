@@ -5,7 +5,7 @@ import "./Staff.sol";
 import "./StaffUtil.sol";
 import "./interfaces/ERC20Token.sol";
 import "./DiscountPhases.sol";
-import "./DiscountStructs.sol";
+import "./interfaces/IDiscountStructs.sol";
 import "./PromoCodes.sol";
 
 
@@ -15,7 +15,7 @@ contract Crowdsale is StaffUtil {
 	ERC20Token tokenContract;
 	PromoCodes promoCodesContract;
 	DiscountPhases discountPhasesContract;
-	DiscountStructs discountStructsContract;
+	IDiscountStructs discountStructsContract;
 
 	address ethFundsWallet;
 	uint256 referralBonusPercent;
@@ -117,7 +117,7 @@ contract Crowdsale is StaffUtil {
 		ethFundsWallet = addressArgs[0];
 		promoCodesContract = PromoCodes(addressArgs[1]);
 		discountPhasesContract = DiscountPhases(addressArgs[2]);
-		discountStructsContract = DiscountStructs(addressArgs[3]);
+		discountStructsContract = IDiscountStructs(addressArgs[3]);
 
 		require(startDate < crowdsaleStartDate);
 		require(crowdsaleStartDate < endDate);
