@@ -2,7 +2,7 @@ pragma solidity ^0.5.0;
 
 
 import "./StaffUtil.sol";
-import "./Staff.sol";
+import "./interfaces/IStaff.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
@@ -18,7 +18,7 @@ contract Commission is StaffUtil {
 	uint256 public txFeeSentInWei;
 
 	constructor(
-		Staff _staffContract,
+		IStaff _staffContract,
 		address payable _ethFundsWallet,
 		address payable[] memory _txFeeAddresses,
 		uint256[] memory _txFeeNumerator,

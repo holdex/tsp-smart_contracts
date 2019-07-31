@@ -1,9 +1,9 @@
 pragma solidity ^0.5.0;
 
 
-import "./Staff.sol";
+import "./interfaces/IStaff.sol";
 import "./StaffUtil.sol";
-import "./Crowdsale.sol";
+import "./interfaces/IStaffUtil.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
@@ -25,7 +25,7 @@ contract PromoCodes is StaffUtil {
 
 	mapping(bytes32 => PromoCode) public promoCodes;
 
-	constructor(Staff _staffContract) StaffUtil(_staffContract) public {
+	constructor(IStaff _staffContract) StaffUtil(_staffContract) public {
 	}
 
 	modifier onlyCrowdsale() {
@@ -33,9 +33,9 @@ contract PromoCodes is StaffUtil {
 		_;
 	}
 
-	function setCrowdsale(Crowdsale _crowdsale) external onlyOwner {
+	function setCrowdsale(IStaffUtil _crowdsale) external onlyOwner {
 		require(crowdsale == address(0));
-		require(_crowdsale.staffContract() == staffContract);
+		require(_crowdsale.staffContract() == address(staffContract));
 		crowdsale = address(_crowdsale);
 	}
 

@@ -1,21 +1,22 @@
 pragma solidity ^0.5.0;
 
 
-import "./Staff.sol";
+import "./interfaces/IStaff.sol";
 import "./StaffUtil.sol";
-import "./Token.sol";
-import "./DiscountPhases.sol";
-import "./DiscountStructs.sol";
-import "./PromoCodes.sol";
+import "./interfaces/ERC20Token.sol";
+import "./interfaces/IDiscountPhases.sol";
+import "./interfaces/IDiscountStructs.sol";
+import "./interfaces/IPromoCodes.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
 contract Crowdsale is StaffUtil {
 	using SafeMath for uint256;
 
-	Token tokenContract;
-	PromoCodes promoCodesContract;
-	DiscountPhases discountPhasesContract;
-	DiscountStructs discountStructsContract;
+	ERC20Token tokenContract;
+	IPromoCodes promoCodesContract;
+	IDiscountPhases discountPhasesContract;
+	IDiscountStructs discountStructsContract;
 
 	address ethFundsWallet;
 	uint256 referralBonusPercent;
@@ -98,7 +99,7 @@ contract Crowdsale is StaffUtil {
 	constructor (
 		uint256[11] memory uint256Args,
 		address[5] memory addressArgs
-	) StaffUtil(Staff(addressArgs[4])) public {
+	) StaffUtil(IStaff(addressArgs[4])) public {
 
 		// uint256 args
 		startDate = uint256Args[0];
@@ -115,9 +116,9 @@ contract Crowdsale is StaffUtil {
 
 		// address args
 		ethFundsWallet = addressArgs[0];
-		promoCodesContract = PromoCodes(addressArgs[1]);
-		discountPhasesContract = DiscountPhases(addressArgs[2]);
-		discountStructsContract = DiscountStructs(addressArgs[3]);
+		promoCodesContract = IPromoCodes(addressArgs[1]);
+		discountPhasesContract = IDiscountPhases(addressArgs[2]);
+		discountStructsContract = IDiscountStructs(addressArgs[3]);
 
 		require(startDate < crowdsaleStartDate);
 		require(crowdsaleStartDate < endDate);
@@ -172,7 +173,7 @@ contract Crowdsale is StaffUtil {
 		return soldTokens.sub(claimedSoldTokens).add(bonusTokens.sub(claimedBonusTokens)).add(sentTokens.sub(claimedSentTokens));
 	}
 
-	function setTokenContract(Token token) external onlyOwner {
+	function setTokenContract(ERC20Token token) external onlyOwner {
 		require(token.decimals() == tokenDecimals);
 		require(address(tokenContract) == address(0));
 		require(address(token) != address(0));

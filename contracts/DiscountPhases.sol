@@ -1,9 +1,9 @@
 pragma solidity ^0.5.0;
 
 
-import "./Staff.sol";
+import "./interfaces/IStaff.sol";
 import "./StaffUtil.sol";
-import "./Crowdsale.sol";
+import "./interfaces/IStaffUtil.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
@@ -15,9 +15,9 @@ contract DiscountPhases is StaffUtil {
 		require(address(msg.sender) == crowdsale);
 		_;
 	}
-	function setCrowdsale(Crowdsale _crowdsale) external onlyOwner {
+	function setCrowdsale(IStaffUtil _crowdsale) external onlyOwner {
 		require(crowdsale == address(0));
-		require(_crowdsale.staffContract() == staffContract);
+		require(_crowdsale.staffContract() == address(staffContract));
 		crowdsale = address(_crowdsale);
 	}
 
@@ -54,7 +54,7 @@ contract DiscountPhases is StaffUtil {
 		uint256 bonusAmount;
 	}
 
-	constructor(Staff _staffContract) StaffUtil(_staffContract) public {
+	constructor(IStaff _staffContract) StaffUtil(_staffContract) public {
 	}
 
 	function getBonus(address _investor, uint _purchaseId, uint256 _purchasedTokensAmount, uint256 _purchasedWeiAmount, uint _discountId) public onlyCrowdsale returns (uint256) {
