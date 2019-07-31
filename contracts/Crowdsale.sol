@@ -4,7 +4,7 @@ pragma solidity ^0.5.0;
 import "./Staff.sol";
 import "./StaffUtil.sol";
 import "./interfaces/ERC20Token.sol";
-import "./DiscountPhases.sol";
+import "./interfaces/IDiscountPhases.sol";
 import "./interfaces/IDiscountStructs.sol";
 import "./PromoCodes.sol";
 
@@ -14,7 +14,7 @@ contract Crowdsale is StaffUtil {
 
 	ERC20Token tokenContract;
 	PromoCodes promoCodesContract;
-	DiscountPhases discountPhasesContract;
+	IDiscountPhases discountPhasesContract;
 	IDiscountStructs discountStructsContract;
 
 	address ethFundsWallet;
@@ -116,7 +116,7 @@ contract Crowdsale is StaffUtil {
 		// address args
 		ethFundsWallet = addressArgs[0];
 		promoCodesContract = PromoCodes(addressArgs[1]);
-		discountPhasesContract = DiscountPhases(addressArgs[2]);
+		discountPhasesContract = IDiscountPhases(addressArgs[2]);
 		discountStructsContract = IDiscountStructs(addressArgs[3]);
 
 		require(startDate < crowdsaleStartDate);
