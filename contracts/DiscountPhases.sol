@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
 
-import "./Staff.sol";
+import "./interfaces/IStaff.sol";
 import "./StaffUtil.sol";
 import "./interfaces/IStaffUtil.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -54,7 +54,7 @@ contract DiscountPhases is StaffUtil {
 		uint256 bonusAmount;
 	}
 
-	constructor(Staff _staffContract) StaffUtil(_staffContract) public {
+	constructor(IStaff _staffContract) StaffUtil(_staffContract) public {
 	}
 
 	function getBonus(address _investor, uint _purchaseId, uint256 _purchasedTokensAmount, uint256 _purchasedWeiAmount, uint _discountId) public onlyCrowdsale returns (uint256) {

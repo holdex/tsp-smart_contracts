@@ -1,13 +1,13 @@
 pragma solidity ^0.5.0;
 
 
-import "./Staff.sol";
+import "./interfaces/IStaff.sol";
 
 
 contract StaffUtil {
-	Staff public staffContract;
+	IStaff public staffContract;
 
-	constructor (Staff _staffContract) public {
+	constructor (IStaff _staffContract) public {
 		require(msg.sender == _staffContract.owner());
 		staffContract = _staffContract;
 	}

@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
 
-import "./Staff.sol";
+import "./interfaces/IStaff.sol";
 import "./StaffUtil.sol";
 import "./interfaces/IStaffUtil.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -52,7 +52,7 @@ contract DiscountStructs is StaffUtil {
 	DiscountStruct[] public discountStructs;
 	mapping(uint => DiscountStep[]) public discountSteps;
 
-	constructor(Staff _staffContract) StaffUtil(_staffContract) public {
+	constructor(IStaff _staffContract) StaffUtil(_staffContract) public {
 	}
 
 	modifier onlyCrowdsale() {

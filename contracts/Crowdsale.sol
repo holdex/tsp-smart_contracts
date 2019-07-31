@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
 
-import "./Staff.sol";
+import "./interfaces/IStaff.sol";
 import "./StaffUtil.sol";
 import "./interfaces/ERC20Token.sol";
 import "./interfaces/IDiscountPhases.sol";
@@ -99,7 +99,7 @@ contract Crowdsale is StaffUtil {
 	constructor (
 		uint256[11] memory uint256Args,
 		address[5] memory addressArgs
-	) StaffUtil(Staff(addressArgs[4])) public {
+	) StaffUtil(IStaff(addressArgs[4])) public {
 
 		// uint256 args
 		startDate = uint256Args[0];
