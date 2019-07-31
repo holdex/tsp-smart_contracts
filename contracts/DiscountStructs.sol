@@ -3,7 +3,7 @@ pragma solidity ^0.5.0;
 
 import "./Staff.sol";
 import "./StaffUtil.sol";
-import "./Crowdsale.sol";
+import "./interfaces/IStaffUtil.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
@@ -60,9 +60,9 @@ contract DiscountStructs is StaffUtil {
 		_;
 	}
 
-	function setCrowdsale(Crowdsale _crowdsale) external onlyOwner {
+	function setCrowdsale(IStaffUtil _crowdsale) external onlyOwner {
 		require(crowdsale == address(0));
-		require(_crowdsale.staffContract() == staffContract);
+		require(_crowdsale.staffContract() == address(staffContract));
 		crowdsale = address(_crowdsale);
 	}
 
