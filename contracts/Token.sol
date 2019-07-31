@@ -1,9 +1,9 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 
-import "zeppelin-solidity/contracts/token/ERC20/BurnableToken.sol";
-import "zeppelin-solidity/contracts/token/ERC20/DetailedERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
 
 
-contract Token is BurnableToken, DetailedERC20 {
+contract Token is ERC20Burnable, ERC20Detailed {
 }

@@ -1,23 +1,29 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 
-import "zeppelin-solidity/contracts/ownership/Ownable.sol";
-import "zeppelin-solidity/contracts/ownership/rbac/RBAC.sol";
+import "@openzeppelin/contracts/ownership/Ownable.sol";
+import "@openzeppelin/contracts/access/Roles.sol";
 
 
-contract Staff is Ownable, RBAC {
+contract Staff is Ownable {
+	using Roles for Roles.Role;
 
-	string public constant ROLE_STAFF = "staff";
+	event StaffAdded(address indexed staff);
+	event StaffRemoved(address indexed staff);
 
-	function addStaff(address _staff) public onlyOwner {
-		addRole(_staff, ROLE_STAFF);
+	Roles.Role private _staff;
+
+	function addStaff(address s) public onlyOwner {
+		_staff.add(s);
+		emit StaffAdded(s);
 	}
 
-	function removeStaff(address _staff) public onlyOwner {
-		removeRole(_staff, ROLE_STAFF);
+	function removeStaff(address s) public onlyOwner {
+		_staff.remove(s);
+		emit StaffRemoved(s);
 	}
 
-	function isStaff(address _staff) view public returns (bool) {
-		return hasRole(_staff, ROLE_STAFF);
+	function isStaff(address s) public view returns (bool) {
+		return _staff.has(s);
 	}
 }

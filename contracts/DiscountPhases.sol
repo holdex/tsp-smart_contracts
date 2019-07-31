@@ -1,10 +1,10 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 
 import "./Staff.sol";
 import "./StaffUtil.sol";
 import "./Crowdsale.sol";
-import "zeppelin-solidity/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
 contract DiscountPhases is StaffUtil {
@@ -12,13 +12,13 @@ contract DiscountPhases is StaffUtil {
 
 	address public crowdsale;
 	modifier onlyCrowdsale() {
-		require(msg.sender == crowdsale);
+		require(address(msg.sender) == crowdsale);
 		_;
 	}
 	function setCrowdsale(Crowdsale _crowdsale) external onlyOwner {
 		require(crowdsale == address(0));
 		require(_crowdsale.staffContract() == staffContract);
-		crowdsale = _crowdsale;
+		crowdsale = address(_crowdsale);
 	}
 
 	event DiscountPhaseAdded(uint index, string name, uint8 percent, uint fromDate, uint toDate, uint lockDate, uint timestamp, address byStaff);
@@ -74,14 +74,15 @@ contract DiscountPhases is StaffUtil {
 		return bonusAmount;
 	}
 
-	function getBlockedBonus(address _investor, uint _purchaseId) public constant returns (uint256) {
+	function getBlockedBonus(address _investor, uint _purchaseId) public view returns (uint256) {
 		InvestorBonus storage discountBonus = investorBonus[_investor][_purchaseId];
 		if (discountBonus.exists && discountPhases[discountBonus.discountId].lockDate > now) {
 			return investorBonus[_investor][_purchaseId].bonusAmount;
 		}
+		return 0;
 	}
 
-	function getBlockedPurchased(address _investor, uint _purchaseId) public constant returns (uint256[2] purchasedAmount) {
+	function getBlockedPurchased(address _investor, uint _purchaseId) public view returns (uint256[2] memory purchasedAmount) {
 		InvestorPurchase storage discountPurchase = investorPurchase[_investor][_purchaseId];
 		if (discountPurchase.exists && discountPhases[discountPurchase.discountId].lockDate > now) {
 			purchasedAmount[0] = investorPurchase[_investor][_purchaseId].purchasedTokensAmount;
@@ -105,16 +106,17 @@ contract DiscountPhases is StaffUtil {
 		delete (investorPurchase[_investor][_purchaseId]);
 	}
 
-	function calculateBonusAmount(uint256 _purchasedAmount, uint _discountId) public constant returns (uint256) {
+	function calculateBonusAmount(uint256 _purchasedAmount, uint _discountId) public view returns (uint256) {
 		if (discountPhases.length <= _discountId) {
 			return 0;
 		}
 		if (now >= discountPhases[_discountId].fromDate && now <= discountPhases[_discountId].toDate && !discountPhases[_discountId].discontinued) {
 			return _purchasedAmount.mul(discountPhases[_discountId].percent).div(100);
 		}
+		return 0;
 	}
 
-	function addDiscountPhase(string _name, uint8 _percent, uint _fromDate, uint _toDate, uint _lockDate) public onlyOwnerOrStaff {
+	function addDiscountPhase(string memory _name, uint8 _percent, uint _fromDate, uint _toDate, uint _lockDate) public onlyOwnerOrStaff {
 		require(bytes(_name).length > 0);
 		require(_percent > 0 && _percent <= 100);
 		require(_fromDate < _toDate);

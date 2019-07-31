@@ -1,10 +1,10 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 
-import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import "./Staff.sol";
 import "./StaffUtil.sol";
 import "./Crowdsale.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
 contract DiscountStructs is StaffUtil {
@@ -63,7 +63,7 @@ contract DiscountStructs is StaffUtil {
 	function setCrowdsale(Crowdsale _crowdsale) external onlyOwner {
 		require(crowdsale == address(0));
 		require(_crowdsale.staffContract() == staffContract);
-		crowdsale = _crowdsale;
+		crowdsale = address(_crowdsale);
 	}
 
 	function getBonus(address _investor, uint256 _purchasedAmount, uint256 _purchasedValue) public onlyCrowdsale returns (uint256) {
@@ -71,7 +71,7 @@ contract DiscountStructs is StaffUtil {
 			if (now >= discountStructs[i].fromDate && now <= discountStructs[i].toDate) {
 
 				if (discountStructs[i].distributedTokens >= discountStructs[i].availableTokens) {
-					return;
+					return 0;
 				}
 
 				for (uint j = 0; j < discountSteps[i].length; j++) {
@@ -79,7 +79,7 @@ contract DiscountStructs is StaffUtil {
 						&& (_purchasedValue < discountSteps[i][j].toWei || discountSteps[i][j].toWei == 0)) {
 						uint256 bonus = _purchasedAmount.mul(discountSteps[i][j].percent).div(100);
 						if (discountStructs[i].distributedTokens.add(bonus) > discountStructs[i].availableTokens) {
-							return;
+							return 0;
 						}
 						discountStructs[i].distributedTokens = discountStructs[i].distributedTokens.add(bonus);
 						emit DiscountStructUsed(i, j, _investor, bonus, now);
@@ -87,17 +87,18 @@ contract DiscountStructs is StaffUtil {
 					}
 				}
 
-				return;
+				return 0;
 			}
 		}
+		return 0;
 	}
 
-	function calculateBonus(uint256 _purchasedAmount, uint256 _purchasedValue) public constant returns (uint256) {
+	function calculateBonus(uint256 _purchasedAmount, uint256 _purchasedValue) public view returns (uint256) {
 		for (uint i = 0; i < discountStructs.length; i++) {
 			if (now >= discountStructs[i].fromDate && now <= discountStructs[i].toDate) {
 
 				if (discountStructs[i].distributedTokens >= discountStructs[i].availableTokens) {
-					return;
+					return 0;
 				}
 
 				for (uint j = 0; j < discountSteps[i].length; j++) {
@@ -105,18 +106,19 @@ contract DiscountStructs is StaffUtil {
 						&& (_purchasedValue < discountSteps[i][j].toWei || discountSteps[i][j].toWei == 0)) {
 						uint256 bonus = _purchasedAmount.mul(discountSteps[i][j].percent).div(100);
 						if (discountStructs[i].distributedTokens.add(bonus) > discountStructs[i].availableTokens) {
-							return;
+							return 0;
 						}
 						return bonus;
 					}
 				}
 
-				return;
+				return 0;
 			}
 		}
+		return 0;
 	}
 
-	function addDiscountStruct(bytes32 _name, uint256 _tokens, uint[2] _dates, uint256[] _fromWei, uint256[] _toWei, uint256[] _percent) external onlyOwnerOrStaff {
+	function addDiscountStruct(bytes32 _name, uint256 _tokens, uint[2] calldata _dates, uint256[] calldata _fromWei, uint256[] calldata _toWei, uint256[] calldata _percent) external onlyOwnerOrStaff {
 		require(_name.length > 0);
 		require(_tokens > 0);
 		require(_dates[0] < _dates[1]);

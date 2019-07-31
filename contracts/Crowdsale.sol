@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 
 import "./Staff.sol";
@@ -96,8 +96,8 @@ contract Crowdsale is StaffUtil {
 	);
 
 	constructor (
-		uint256[11] uint256Args,
-		address[5] addressArgs
+		uint256[11] memory uint256Args,
+		address[5] memory addressArgs
 	) StaffUtil(Staff(addressArgs[4])) public {
 
 		// uint256 args
@@ -128,7 +128,7 @@ contract Crowdsale is StaffUtil {
 		require(ethFundsWallet != address(0));
 	}
 
-	function getState() external view returns (bool[2] boolArgs, uint256[18] uint256Args, address[6] addressArgs) {
+	function getState() external view returns (bool[2] memory boolArgs, uint256[18] memory uint256Args, address[6] memory addressArgs) {
 		boolArgs[0] = paused;
 		boolArgs[1] = finalized;
 		uint256Args[0] = weiRaised;
@@ -149,12 +149,12 @@ contract Crowdsale is StaffUtil {
 		uint256Args[15] = maxInvestorContributionInWei;
 		uint256Args[16] = referralBonusPercent;
 		uint256Args[17] = getTokensForSaleCap();
-		addressArgs[0] = staffContract;
+		addressArgs[0] = address(staffContract);
 		addressArgs[1] = ethFundsWallet;
-		addressArgs[2] = promoCodesContract;
-		addressArgs[3] = discountPhasesContract;
-		addressArgs[4] = discountStructsContract;
-		addressArgs[5] = tokenContract;
+		addressArgs[2] = address(promoCodesContract);
+		addressArgs[3] = address(discountPhasesContract);
+		addressArgs[4] = address(discountStructsContract);
+		addressArgs[5] = address(tokenContract);
 	}
 
 	function fitsTokensForSaleCap(uint256 _amount) public view returns (bool) {
@@ -162,8 +162,8 @@ contract Crowdsale is StaffUtil {
 	}
 
 	function getTokensForSaleCap() public view returns (uint256) {
-		if (tokenContract != address(0)) {
-			return tokenContract.balanceOf(this);
+		if (address(tokenContract) != address(0)) {
+			return tokenContract.balanceOf(address(this));
 		}
 		return tokensForSaleCap;
 	}
@@ -174,19 +174,19 @@ contract Crowdsale is StaffUtil {
 
 	function setTokenContract(Token token) external onlyOwner {
 		require(token.decimals() == tokenDecimals);
-		require(tokenContract == address(0));
-		require(token != address(0));
+		require(address(tokenContract) == address(0));
+		require(address(token) != address(0));
 		tokenContract = token;
 	}
 
 	function getInvestorClaimedTokens(address _investor) external view returns (uint256) {
-		if (tokenContract != address(0)) {
+		if (address(tokenContract) != address(0)) {
 			return tokenContract.balanceOf(_investor);
 		}
 		return 0;
 	}
 
-	function whitelistInvestors(address[] _investors) external onlyOwnerOrStaff {
+	function whitelistInvestors(address[] calldata _investors) external onlyOwnerOrStaff {
 		for (uint256 i = 0; i < _investors.length; i++) {
 			if (_investors[i] != address(0) && investors[_investors[i]].status != InvestorStatus.WHITELISTED) {
 				investors[_investors[i]].status = InvestorStatus.WHITELISTED;
@@ -195,7 +195,7 @@ contract Crowdsale is StaffUtil {
 		}
 	}
 
-	function blockInvestors(address[] _investors) external onlyOwnerOrStaff {
+	function blockInvestors(address[] calldata _investors) external onlyOwnerOrStaff {
 		for (uint256 i = 0; i < _investors.length; i++) {
 			if (_investors[i] != address(0) && investors[_investors[i]].status != InvestorStatus.BLOCKED) {
 				investors[_investors[i]].status = InvestorStatus.BLOCKED;
@@ -247,7 +247,7 @@ contract Crowdsale is StaffUtil {
 			value : 0,
 			amount : 0,
 			bonus : 0,
-			referrer : 0x0,
+			referrer : address(0),
 			referrerSentAmount : 0
 			})) - 1;
 
@@ -321,7 +321,8 @@ contract Crowdsale is StaffUtil {
 		);
 
 		// forward eth to funds wallet
-		require(ethFundsWallet.call.gas(300000).value(msg.value)());
+		(bool success,) = ethFundsWallet.call.value(msg.value).gas(300000)("");
+		require(success);
 	}
 
 	function sendTokens(address _investor, uint256 _amount) external onlyOwner {
@@ -345,17 +346,17 @@ contract Crowdsale is StaffUtil {
 	}
 
 	function burnUnsoldTokens() external onlyOwner {
-		require(tokenContract != address(0));
+		require(address(tokenContract) != address(0));
 		require(finalized);
 
-		uint256 tokensToBurn = tokenContract.balanceOf(this).sub(getDistributedTokens());
+		uint256 tokensToBurn = tokenContract.balanceOf(address(this)).sub(getDistributedTokens());
 		require(tokensToBurn > 0);
 
 		tokenContract.burn(tokensToBurn);
 	}
 
 	function claimTokens() external {
-		require(tokenContract != address(0));
+		require(address(tokenContract) != address(0));
 		require(!paused);
 		require(investors[msg.sender].status == InvestorStatus.WHITELISTED);
 
@@ -371,7 +372,7 @@ contract Crowdsale is StaffUtil {
 			uint256 purchasedTokens = investors[msg.sender].purchasedTokens;
 			uint256 receivedTokens = investors[msg.sender].receivedTokens;
 
-			for (i = 0; i < investors[msg.sender].tokensPurchases.length; i++) {
+			for (uint256 i = 0; i < investors[msg.sender].tokensPurchases.length; i++) {
 				uint256[2] memory blockedPurchased = discountPhasesContract.getBlockedPurchased(msg.sender, i);
 				if (blockedPurchased[0] > 0) {
 					purchasedTokens = purchasedTokens.sub(blockedPurchased[0]);
@@ -405,7 +406,7 @@ contract Crowdsale is StaffUtil {
 			uint256 bonusTokens_ = investors[msg.sender].bonusTokens;
 			uint256 refTokens = investors[msg.sender].referralTokens;
 
-			for (i = 0; i < investors[msg.sender].tokensPurchases.length; i++) {
+			for (uint256 i = 0; i < investors[msg.sender].tokensPurchases.length; i++) {
 				uint256 blockedBonus = discountPhasesContract.getBlockedBonus(msg.sender, i);
 				if (blockedBonus > 0) {
 					bonusTokens_ = bonusTokens_.sub(blockedBonus);
@@ -431,7 +432,7 @@ contract Crowdsale is StaffUtil {
 		emit TokensClaimed(msg.sender, clPurchasedTokens, clBonusTokens_, clRefTokens, clReceivedTokens, now, msg.sender);
 	}
 
-	function refundTokensPurchase(address _investor, uint _purchaseId) external payable onlyOwner {
+	function refundTokensPurchase(address payable _investor, uint _purchaseId) external payable onlyOwner {
 		require(msg.value > 0);
 		require(investors[_investor].tokensPurchases[_purchaseId].value == msg.value);
 
@@ -441,7 +442,7 @@ contract Crowdsale is StaffUtil {
 		_investor.transfer(msg.value);
 	}
 
-	function refundAllInvestorTokensPurchases(address _investor) external payable onlyOwner {
+	function refundAllInvestorTokensPurchases(address payable _investor) external payable onlyOwner {
 		require(msg.value > 0);
 		require(investors[_investor].contributionInWei == msg.value);
 
@@ -496,14 +497,14 @@ contract Crowdsale is StaffUtil {
 		emit TokensPurchaseRefunded(_investor, _purchaseId, purchaseValue, purchaseAmount, bonusAmount, now, msg.sender);
 	}
 
-	function getInvestorTokensPurchasesLength(address _investor) public constant returns (uint) {
+	function getInvestorTokensPurchasesLength(address _investor) public view returns (uint) {
 		return investors[_investor].tokensPurchases.length;
 	}
 
 	function getInvestorTokensPurchase(
 		address _investor,
 		uint _purchaseId
-	) external constant returns (
+	) external view returns (
 		uint256 value,
 		uint256 amount,
 		uint256 bonus,
