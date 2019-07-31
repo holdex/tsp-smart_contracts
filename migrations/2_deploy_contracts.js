@@ -7,7 +7,6 @@ const DiscountPhases = artifacts.require("./DiscountPhases.sol");
 const DiscountStructs = artifacts.require("./DiscountStructs.sol");
 
 module.exports = function (deployer) {
-    console.log("web3version", web3.version);
     deployer
         .deploy(Staff)
         .then(() => deployer.deploy(DiscountPhases, Staff.address))
@@ -93,7 +92,6 @@ module.exports = function (deployer) {
             console.log("DISCOUNT_PHASES_CONTRACT_ADDRESS=" + DiscountPhases.address);
             console.log("DISCOUNT_STRUCTS_CONTRACT_ADDRESS=" + DiscountStructs.address);
             console.log("===============================================================");
-            // throw "finished!";
         })
         .catch((e) => console.log("error:", e));
 };
