@@ -1,71 +1,111 @@
 pragma solidity ^0.5.0;
 
-
-import "./StaffUtil.sol";
-import "./interfaces/IStaff.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/ownership/Ownable.sol";
 
-
-contract Commission is StaffUtil {
+contract Commission is Ownable {
 	using SafeMath for uint256;
 
-	address public crowdsale;
-	address payable public ethFundsWallet;
-	address payable[] public txFeeAddresses;
-	uint256[] public txFeeNumerator;
-	uint256 public txFeeDenominator;
-	uint256 public txFeeCapInWei;
-	uint256 public txFeeSentInWei;
+	address payable wallet;
 
-	constructor(
-		IStaff _staffContract,
-		address payable _ethFundsWallet,
-		address payable[] memory _txFeeAddresses,
-		uint256[] memory _txFeeNumerator,
-		uint256 _txFeeDenominator,
-		uint256 _txFeeCapInWei
-	) StaffUtil(_staffContract) public {
-		require(_ethFundsWallet != address(0));
-		require(_txFeeAddresses.length == _txFeeNumerator.length);
-		require(_txFeeAddresses.length == 0 || _txFeeDenominator > 0);
-		uint256 totalFeesNumerator;
-		for (uint i = 0; i < txFeeAddresses.length; i++) {
-			require(txFeeAddresses[i] != address(0));
-			require(_txFeeNumerator[i] > 0);
-			require(_txFeeDenominator > _txFeeNumerator[i]);
-			totalFeesNumerator = totalFeesNumerator.add(_txFeeNumerator[i]);
+	constructor(address payable _wallet) public {
+		wallet = _wallet;
+	}
+
+	// Customers ===================================================================================
+
+	event CustomerAdded(address indexed customer, address indexed wallet, uint256 commission);
+	event CustomerUpdated(address indexed customer, address indexed wallet, uint256 commission);
+	event CustomerRemoved(address indexed customer);
+
+	mapping(address => Customer) public customers;
+
+	struct Customer {
+		address payable wallet;
+		uint256 commissionPercent;
+		mapping(bytes32 => Partner) partners;
+	}
+
+	function addCustomer(address _customer, address payable _wallet, uint256 _commissionPercent) external onlyOwner {
+		// Inputs validation
+		require(_customer != address(0), "missing customer address");
+		require(_wallet != address(0), "missing wallet address");
+		require(_commissionPercent < 100, "invalid commission percent");
+
+		// Check if customer already exists
+		if (customers[_customer].wallet == address(0)) {
+			// Customer does not exist, add it
+			customers[_customer] = Customer(_wallet, _commissionPercent);
+			emit CustomerAdded(_customer, _wallet, _commissionPercent);
+		} else {
+			// Customer already exists, update it
+			customers[_customer].wallet = _wallet;
+			customers[_customer].commissionPercent = _commissionPercent;
+			emit CustomerUpdated(_customer, _wallet, _commissionPercent);
 		}
-		require(_txFeeDenominator == 0 || totalFeesNumerator < _txFeeDenominator);
-
-		ethFundsWallet = _ethFundsWallet;
-		txFeeAddresses = _txFeeAddresses;
-		txFeeNumerator = _txFeeNumerator;
-		txFeeDenominator = _txFeeDenominator;
-		txFeeCapInWei = _txFeeCapInWei;
 	}
 
-	function() external payable {
-		require(msg.sender == crowdsale);
+	function removeCustomer(address _customer) external onlyOwner {
+		delete customers[_customer];
+		emit CustomerRemoved(_customer);
+	}
 
-		uint256 fundsToTransfer = msg.value;
+	// Partners ====================================================================================
 
-		if (txFeeCapInWei > 0 && txFeeSentInWei < txFeeCapInWei) {
-			for (uint i = 0; i < txFeeAddresses.length; i++) {
-				uint256 txFeeToSendInWei = msg.value.mul(txFeeNumerator[i]).div(txFeeDenominator);
-				if (txFeeToSendInWei > 0) {
-					txFeeSentInWei = txFeeSentInWei.add(txFeeToSendInWei);
-					fundsToTransfer = fundsToTransfer.sub(txFeeToSendInWei);
-					txFeeAddresses[i].transfer(txFeeToSendInWei);
-				}
-			}
+	event PartnerAdded(address indexed customer, bytes32 indexed partner, address indexed wallet, uint256 commission);
+	event PartnerUpdated(address indexed customer, bytes32 indexed partner, address indexed wallet, uint256 commission);
+	event PartnerRemoved(address indexed customer, bytes32 indexed partner);
+
+	struct Partner {
+		address payable wallet;
+		uint256 commissionPercent;
+	}
+
+	function addPartner(address _customer, bytes32 _partner, address payable _wallet, uint256 _commissionPercent) external onlyOwner {
+		// Inputs validation
+		require(_customer != address(0), "missing customer address");
+		require(_partner != "", "missing partner id");
+		require(_wallet != address(0), "missing wallet address");
+		require(_commissionPercent < 100, "invalid commission percent");
+
+		// Check if partner already exists
+		if (customers[_customer].partners[_partner].wallet == address(0)) {
+			// Partner does not exist, add it
+			customers[_customer].partners[_partner] = Partner(_wallet, _commissionPercent);
+			emit PartnerAdded(_customer, _partner, _wallet, _commissionPercent);
+		} else {
+			// Partner already exists, update it
+			customers[_customer].partners[_partner].wallet = _wallet;
+			customers[_customer].partners[_partner].commissionPercent = _commissionPercent;
+			emit PartnerUpdated(_customer, _partner, _wallet, _commissionPercent);
 		}
-
-		ethFundsWallet.transfer(fundsToTransfer);
 	}
 
-	function setCrowdsale(address _crowdsale) external onlyOwner {
-		require(_crowdsale != address(0));
-		require(crowdsale == address(0));
-		crowdsale = _crowdsale;
+	function removePartner(address _customer, bytes32 _partner) external {
+		delete customers[_customer].partners[_partner];
+		emit PartnerRemoved(_customer, _partner);
 	}
+
+	// Funds/Commissions Transfers =================================================================
+
+	//	event
+	//
+	//	function transfer(string partner) external payable {
+	//		require(msg.sender == crowdsale);
+	//
+	//		uint256 fundsToTransfer = msg.value;
+	//
+	//		if (txFeeCapInWei > 0 && txFeeSentInWei < txFeeCapInWei) {
+	//			for (uint i = 0; i < txFeeAddresses.length; i++) {
+	//				uint256 txFeeToSendInWei = msg.value.mul(txFeeNumerator[i]).div(txFeeDenominator);
+	//				if (txFeeToSendInWei > 0) {
+	//					txFeeSentInWei = txFeeSentInWei.add(txFeeToSendInWei);
+	//					fundsToTransfer = fundsToTransfer.sub(txFeeToSendInWei);
+	//					txFeeAddresses[i].transfer(txFeeToSendInWei);
+	//				}
+	//			}
+	//		}
+	//
+	//		ethFundsWallet.transfer(fundsToTransfer);
+	//	}
 }
