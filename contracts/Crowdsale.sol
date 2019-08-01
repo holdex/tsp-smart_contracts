@@ -18,7 +18,7 @@ contract Crowdsale is StaffUtil {
 	IDiscountPhases discountPhasesContract;
 	IDiscountStructs discountStructsContract;
 
-	address commissionContract;
+	address payable commissionContract;
 	uint256 referralBonusPercent;
 	uint256 startDate;
 
@@ -98,8 +98,9 @@ contract Crowdsale is StaffUtil {
 
 	constructor (
 		uint256[11] memory uint256Args,
-		address[5] memory addressArgs
-	) StaffUtil(IStaff(addressArgs[4])) public {
+		address payable _commissionContract,
+		address[4] memory addressArgs
+	) StaffUtil(IStaff(addressArgs[3])) public {
 
 		// uint256 args
 		startDate = uint256Args[0];
@@ -115,10 +116,10 @@ contract Crowdsale is StaffUtil {
 		referralBonusPercent = uint256Args[10];
 
 		// address args
-		commissionContract = addressArgs[0];
-		promoCodesContract = IPromoCodes(addressArgs[1]);
-		discountPhasesContract = IDiscountPhases(addressArgs[2]);
-		discountStructsContract = IDiscountStructs(addressArgs[3]);
+		commissionContract = _commissionContract;
+		promoCodesContract = IPromoCodes(addressArgs[0]);
+		discountPhasesContract = IDiscountPhases(addressArgs[1]);
+		discountStructsContract = IDiscountStructs(addressArgs[2]);
 
 		require(startDate < crowdsaleStartDate);
 		require(crowdsaleStartDate < endDate);
@@ -236,7 +237,7 @@ contract Crowdsale is StaffUtil {
 		tokenRate = _tokenRate;
 	}
 
-	function buyTokens(bytes32 _promoCode, address _referrer, uint _discountId, bytes32[] memory _partners) external payable {
+	function buyTokens(bytes32 _promoCode, address _referrer, uint _discountId, bytes32[] calldata _partners) external payable {
 		require(!finalized);
 		require(!paused);
 		require(startDate < now);
@@ -323,8 +324,7 @@ contract Crowdsale is StaffUtil {
 		);
 
 		// forward eth to commission contract
-		(bool success,) = commissionContract.call.value(msg.value).gas(300000)(bytes4(sha3("transfer(bytes32[])")), _partners);
-		require(success);
+		require(commissionContract.call.value(msg.value).gas(300000)(bytes4(keccak256(abi.encode("transfer(bytes32[])", _partners)))));
 	}
 
 	function sendTokens(address _investor, uint256 _amount) external onlyOwner {

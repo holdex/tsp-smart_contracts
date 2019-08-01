@@ -23,6 +23,7 @@ contract Commission is Ownable {
 	struct Customer {
 		address payable wallet;
 		uint256 commissionPercent;
+		bytes32[] partnersIndicies;
 		mapping(bytes32 => Partner) partners;
 	}
 
@@ -35,7 +36,8 @@ contract Commission is Ownable {
 		// Check if customer already exists
 		if (customers[_customer].wallet == address(0)) {
 			// Customer does not exist, add it
-			customers[_customer] = Customer(_wallet, _commissionPercent);
+			customers[_customer].wallet = _wallet;
+			customers[_customer].commissionPercent = _commissionPercent;
 			emit CustomerAdded(_customer, _wallet, _commissionPercent);
 		} else {
 			// Customer already exists, update it
@@ -57,6 +59,7 @@ contract Commission is Ownable {
 	event PartnerRemoved(address indexed customer, bytes32 indexed partner);
 
 	struct Partner {
+		uint256 index;
 		address payable wallet;
 		uint256 commissionPercent;
 	}
@@ -68,10 +71,13 @@ contract Commission is Ownable {
 		require(_wallet != address(0), "missing wallet address");
 		require(_commissionPercent < 100, "invalid commission percent");
 
+		// TODO: check total partners commission is < 100
+
 		// Check if partner already exists
 		if (customers[_customer].partners[_partner].wallet == address(0)) {
 			// Partner does not exist, add it
-			customers[_customer].partners[_partner] = Partner(_wallet, _commissionPercent);
+			uint256 index = customers[_customer].partnersIndicies.push(_partner);
+			customers[_customer].partners[_partner] = Partner(index, _wallet, _commissionPercent);
 			emit PartnerAdded(_customer, _partner, _wallet, _commissionPercent);
 		} else {
 			// Partner already exists, update it
@@ -82,30 +88,47 @@ contract Commission is Ownable {
 	}
 
 	function removePartner(address _customer, bytes32 _partner) external {
+		delete customers[_customer].partnersIndicies[customers[_customer].partners[_partner].index];
 		delete customers[_customer].partners[_partner];
 		emit PartnerRemoved(_customer, _partner);
 	}
 
-	// Funds/Commissions Transfers =================================================================
+	// Transfer Funds ==============================================================================
 
-	//	event
-	//
-	//	function transfer(string partner) external payable {
-	//		require(msg.sender == crowdsale);
-	//
-	//		uint256 fundsToTransfer = msg.value;
-	//
-	//		if (txFeeCapInWei > 0 && txFeeSentInWei < txFeeCapInWei) {
-	//			for (uint i = 0; i < txFeeAddresses.length; i++) {
-	//				uint256 txFeeToSendInWei = msg.value.mul(txFeeNumerator[i]).div(txFeeDenominator);
-	//				if (txFeeToSendInWei > 0) {
-	//					txFeeSentInWei = txFeeSentInWei.add(txFeeToSendInWei);
-	//					fundsToTransfer = fundsToTransfer.sub(txFeeToSendInWei);
-	//					txFeeAddresses[i].transfer(txFeeToSendInWei);
-	//				}
-	//			}
-	//		}
-	//
-	//		ethFundsWallet.transfer(fundsToTransfer);
-	//	}
+	function transfer(bytes32[] calldata partners) external payable {
+		// Inputs validation
+		require(customers[msg.sender].wallet != address(0), "customer does not exist");
+		require(msg.value > 0, "transaction value is 0");
+
+		// Check if commission applies for customer
+		if (customers[msg.sender].commissionPercent == 0) {
+			// No commission. Transfer all funds
+			customers[msg.sender].wallet.transfer(msg.value);
+		} else {
+			// Commission applies. Calculate each's revenues
+
+			// Customer revenue
+			uint256 customerRevenue = msg.value.div(100).mul(100 - customers[msg.sender].commissionPercent);
+			// Transfer revenue to customer
+			customers[msg.sender].wallet.transfer(customerRevenue);
+
+			// Calculate Holdex revenue
+			uint256 holdexRevenue = msg.value.sub(customerRevenue);
+
+			// Calculate partners revenues
+			for (uint256 i = 0; i < customers[msg.sender].partnersIndicies.length; i++) {
+				Partner memory p = customers[msg.sender].partners[customers[msg.sender].partnersIndicies[i]];
+
+				// Calculate partner revenue
+				uint256 partnerRevenue = holdexRevenue.div(100).mul(p.commissionPercent);
+				p.wallet.transfer(partnerRevenue);
+
+				// Subtract partner revenue from Holdex revenue
+				holdexRevenue = holdexRevenue.sub(partnerRevenue);
+			}
+
+			// Transfer Holdex remained revenue
+			wallet.transfer(holdexRevenue);
+		}
+	}
 }
