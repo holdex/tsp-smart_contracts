@@ -12,6 +12,16 @@ contract Commission is Ownable {
 		wallet = _wallet;
 	}
 
+	// Holdex wallet ===============================================================================
+
+	event HoldexWalletChanged(address indexed wallet);
+
+	function changeHoldexWallet(address payable _wallet) external onlyOwner {
+		require(_wallet != address(0));
+		wallet = _wallet;
+		emit HoldexWalletChanged(_wallet);
+	}
+
 	// Customers ===================================================================================
 
 	event CustomerAdded(address indexed customer, address indexed wallet, uint256 commission);
