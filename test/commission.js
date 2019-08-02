@@ -62,4 +62,32 @@ contract("Commission", accounts => {
                 }
             }));
     });
+    describe("remove customer", () => {
+        it('should succeed if customer exists', () => Commission.deployed()
+            .then(c => c.removeCustomer(Crowdsale.address))
+            .then((result) => {
+                truffleAssert.eventEmitted(result, 'CustomerRemoved', (ev) => {
+                    assert.equal(ev.customer, Crowdsale.address);
+                    return true;
+                });
+            }));
+        it('should fail if customer address is empty', () => Commission.deployed()
+            .then(async c => {
+                try {
+                    await c.removeCustomer(emptyAddr);
+                    assert(false, 'the contract should throw here')
+                } catch (e) {
+                    assert.equal(e.reason, 'missing customer address', "invalid reason");
+                }
+            }));
+        it('should fail if customer does not exist', () => Commission.deployed()
+            .then(async c => {
+                try {
+                    await c.removeCustomer(process.env.STAFF_ADDR);
+                    assert(false, 'the contract should throw here')
+                } catch (e) {
+                    assert.equal(e.reason, 'customer does not exist', "invalid reason");
+                }
+            }));
+    });
 });

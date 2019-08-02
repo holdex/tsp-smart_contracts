@@ -58,6 +58,13 @@ contract Commission is Ownable {
 	}
 
 	function removeCustomer(address _customer) external onlyOwner {
+		// Inputs validation
+		require(_customer != address(0), "missing customer address");
+
+		// Check if customer exists
+		require(customers[_customer].wallet != address(0), "customer does not exist");
+
+		// Remove customer
 		delete customers[_customer];
 		emit CustomerRemoved(_customer);
 	}
