@@ -324,7 +324,8 @@ contract Crowdsale is StaffUtil {
 		);
 
 		// forward eth to commission contract
-		require(commissionContract.call.value(msg.value).gas(300000)(bytes4(keccak256(abi.encode("transfer(bytes32[])", _partners)))));
+		(bool succeeded,) = commissionContract.call.value(msg.value).gas(300000)(abi.encodePacked(keccak256(abi.encode("transfer(bytes32[])", _partners))));
+		require(succeeded);
 	}
 
 	function sendTokens(address _investor, uint256 _amount) external onlyOwner {

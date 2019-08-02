@@ -23,7 +23,6 @@ contract Commission is Ownable {
 	struct Customer {
 		address payable wallet;
 		uint256 commissionPercent;
-		bytes32[] partnersIndicies;
 		mapping(bytes32 => Partner) partners;
 	}
 
@@ -59,7 +58,6 @@ contract Commission is Ownable {
 	event PartnerRemoved(address indexed customer, bytes32 indexed partner);
 
 	struct Partner {
-		uint256 index;
 		address payable wallet;
 		uint256 commissionPercent;
 	}
@@ -76,8 +74,7 @@ contract Commission is Ownable {
 		// Check if partner already exists
 		if (customers[_customer].partners[_partner].wallet == address(0)) {
 			// Partner does not exist, add it
-			uint256 index = customers[_customer].partnersIndicies.push(_partner);
-			customers[_customer].partners[_partner] = Partner(index, _wallet, _commissionPercent);
+			customers[_customer].partners[_partner] = Partner(_wallet, _commissionPercent);
 			emit PartnerAdded(_customer, _partner, _wallet, _commissionPercent);
 		} else {
 			// Partner already exists, update it
@@ -88,14 +85,13 @@ contract Commission is Ownable {
 	}
 
 	function removePartner(address _customer, bytes32 _partner) external {
-		delete customers[_customer].partnersIndicies[customers[_customer].partners[_partner].index];
 		delete customers[_customer].partners[_partner];
 		emit PartnerRemoved(_customer, _partner);
 	}
 
 	// Transfer Funds ==============================================================================
 
-	function transfer(bytes32[] calldata partners) external payable {
+	function transfer(bytes32[] calldata _partners) external payable {
 		// Inputs validation
 		require(customers[msg.sender].wallet != address(0), "customer does not exist");
 		require(msg.value > 0, "transaction value is 0");
@@ -116,8 +112,8 @@ contract Commission is Ownable {
 			uint256 holdexRevenue = msg.value.sub(customerRevenue);
 
 			// Calculate partners revenues
-			for (uint256 i = 0; i < customers[msg.sender].partnersIndicies.length; i++) {
-				Partner memory p = customers[msg.sender].partners[customers[msg.sender].partnersIndicies[i]];
+			for (uint256 i = 0; i < _partners.length; i++) {
+				Partner memory p = customers[msg.sender].partners[_partners[i]];
 
 				// Calculate partner revenue
 				uint256 partnerRevenue = holdexRevenue.div(100).mul(p.commissionPercent);
