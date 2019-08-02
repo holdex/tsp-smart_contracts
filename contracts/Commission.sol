@@ -67,9 +67,7 @@ contract Commission is Ownable {
 		require(_customer != address(0), "missing customer address");
 		require(_partner != "", "missing partner id");
 		require(_wallet != address(0), "missing wallet address");
-		require(_commissionPercent < 100, "invalid commission percent");
-
-		// TODO: check total partners commission is < 100
+		require(_commissionPercent > 0 && _commissionPercent < 100, "invalid commission percent");
 
 		// Check if partner already exists
 		if (customers[_customer].partners[_partner].wallet == address(0)) {
@@ -91,16 +89,20 @@ contract Commission is Ownable {
 
 	// Transfer Funds ==============================================================================
 
-	function transfer(bytes32[] calldata _partners) external payable {
+	function transfer(bool holdex, bytes32[] calldata _partners) external payable {
 		// Inputs validation
 		require(customers[msg.sender].wallet != address(0), "customer does not exist");
 		require(msg.value > 0, "transaction value is 0");
 
-		// Check if commission applies for customer
+		// Check if customer pays any commission
 		if (customers[msg.sender].commissionPercent == 0) {
 			// No commission. Transfer all funds
 			customers[msg.sender].wallet.transfer(msg.value);
-		} else {
+			return;
+		}
+
+		// Check if customer should pay some commission on this transaction
+		if (holdex || _partners.length > 0) {
 			// Commission applies. Calculate each's revenues
 
 			// Customer revenue
@@ -110,19 +112,22 @@ contract Commission is Ownable {
 
 			// Calculate Holdex revenue
 			uint256 holdexRevenue = msg.value.sub(customerRevenue);
-
+			uint256 alreadySentPercent = 0;
 			// Calculate partners revenues
 			for (uint256 i = 0; i < _partners.length; i++) {
 				Partner memory p = customers[msg.sender].partners[_partners[i]];
+				require(p.commissionPercent > 0, "invalid partner");
 
 				// Calculate partner revenue
-				uint256 partnerRevenue = holdexRevenue.div(100).mul(p.commissionPercent);
+				uint256 partnerRevenue = holdexRevenue.div(100 - alreadySentPercent).mul(p.commissionPercent);
 				p.wallet.transfer(partnerRevenue);
 
 				// Subtract partner revenue from Holdex revenue
+				alreadySentPercent = alreadySentPercent.add(p.commissionPercent);
 				holdexRevenue = holdexRevenue.sub(partnerRevenue);
 			}
 
+			require(holdexRevenue > 0, "holdex revenue is 0");
 			// Transfer Holdex remained revenue
 			wallet.transfer(holdexRevenue);
 		}

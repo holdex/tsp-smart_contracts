@@ -237,7 +237,7 @@ contract Crowdsale is StaffUtil {
 		tokenRate = _tokenRate;
 	}
 
-	function buyTokens(bytes32 _promoCode, address _referrer, uint _discountId, bytes32[] calldata _partners) external payable {
+	function buyTokens(bytes32 _promoCode, address _referrer, uint _discountId, bool holdex, bytes32[] calldata _partners) external payable {
 		require(!finalized);
 		require(!paused);
 		require(startDate < now);
@@ -324,7 +324,7 @@ contract Crowdsale is StaffUtil {
 		);
 
 		// forward eth to commission contract
-		(bool succeeded,) = commissionContract.call.value(msg.value).gas(300000)(abi.encodePacked(keccak256(abi.encode("transfer(bytes32[])", _partners))));
+		(bool succeeded,) = commissionContract.call.value(msg.value).gas(300000)(abi.encodePacked(keccak256(abi.encode("transfer(bool, bytes32[])", holdex, _partners))));
 		require(succeeded);
 	}
 
