@@ -18,7 +18,7 @@ contract Crowdsale is StaffUtil {
 	IDiscountPhases discountPhasesContract;
 	IDiscountStructs discountStructsContract;
 
-	address ethFundsWallet;
+	address payable commissionContract;
 	uint256 referralBonusPercent;
 	uint256 startDate;
 
@@ -98,8 +98,9 @@ contract Crowdsale is StaffUtil {
 
 	constructor (
 		uint256[11] memory uint256Args,
-		address[5] memory addressArgs
-	) StaffUtil(IStaff(addressArgs[4])) public {
+		address payable _commissionContract,
+		address[4] memory addressArgs
+	) StaffUtil(IStaff(addressArgs[3])) public {
 
 		// uint256 args
 		startDate = uint256Args[0];
@@ -115,10 +116,10 @@ contract Crowdsale is StaffUtil {
 		referralBonusPercent = uint256Args[10];
 
 		// address args
-		ethFundsWallet = addressArgs[0];
-		promoCodesContract = IPromoCodes(addressArgs[1]);
-		discountPhasesContract = IDiscountPhases(addressArgs[2]);
-		discountStructsContract = IDiscountStructs(addressArgs[3]);
+		commissionContract = _commissionContract;
+		promoCodesContract = IPromoCodes(addressArgs[0]);
+		discountPhasesContract = IDiscountPhases(addressArgs[1]);
+		discountStructsContract = IDiscountStructs(addressArgs[2]);
 
 		require(startDate < crowdsaleStartDate);
 		require(crowdsaleStartDate < endDate);
@@ -126,7 +127,7 @@ contract Crowdsale is StaffUtil {
 		require(tokenRate > 0);
 		require(tokensForSaleCap > 0);
 		require(minPurchaseInWei <= maxInvestorContributionInWei);
-		require(ethFundsWallet != address(0));
+		require(commissionContract != address(0));
 	}
 
 	function getState() external view returns (bool[2] memory boolArgs, uint256[18] memory uint256Args, address[6] memory addressArgs) {
@@ -151,11 +152,12 @@ contract Crowdsale is StaffUtil {
 		uint256Args[16] = referralBonusPercent;
 		uint256Args[17] = getTokensForSaleCap();
 		addressArgs[0] = address(staffContract);
-		addressArgs[1] = ethFundsWallet;
+		addressArgs[1] = commissionContract;
 		addressArgs[2] = address(promoCodesContract);
 		addressArgs[3] = address(discountPhasesContract);
 		addressArgs[4] = address(discountStructsContract);
 		addressArgs[5] = address(tokenContract);
+		return (boolArgs, uint256Args, addressArgs);
 	}
 
 	function fitsTokensForSaleCap(uint256 _amount) public view returns (bool) {
@@ -235,7 +237,7 @@ contract Crowdsale is StaffUtil {
 		tokenRate = _tokenRate;
 	}
 
-	function buyTokens(bytes32 _promoCode, address _referrer, uint _discountId) external payable {
+	function buyTokens(bytes32 _promoCode, address _referrer, uint _discountId, bool holdex, bytes32[] calldata _partners) external payable {
 		require(!finalized);
 		require(!paused);
 		require(startDate < now);
@@ -321,9 +323,9 @@ contract Crowdsale is StaffUtil {
 			now
 		);
 
-		// forward eth to funds wallet
-		(bool success,) = ethFundsWallet.call.value(msg.value).gas(300000)("");
-		require(success);
+		// forward eth to commission contract
+		(bool succeeded,) = commissionContract.call.value(msg.value).gas(300000)(abi.encodePacked(keccak256(abi.encode("transfer(bool, bytes32[])", holdex, _partners))));
+		require(succeeded);
 	}
 
 	function sendTokens(address _investor, uint256 _amount) external onlyOwner {

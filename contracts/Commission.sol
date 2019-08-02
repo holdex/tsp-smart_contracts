@@ -1,71 +1,146 @@
 pragma solidity ^0.5.0;
+pragma experimental ABIEncoderV2;
 
-
-import "./StaffUtil.sol";
-import "./interfaces/IStaff.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/ownership/Ownable.sol";
 
-
-contract Commission is StaffUtil {
+contract Commission is Ownable {
 	using SafeMath for uint256;
 
-	address public crowdsale;
-	address payable public ethFundsWallet;
-	address payable[] public txFeeAddresses;
-	uint256[] public txFeeNumerator;
-	uint256 public txFeeDenominator;
-	uint256 public txFeeCapInWei;
-	uint256 public txFeeSentInWei;
+	address payable wallet;
 
-	constructor(
-		IStaff _staffContract,
-		address payable _ethFundsWallet,
-		address payable[] memory _txFeeAddresses,
-		uint256[] memory _txFeeNumerator,
-		uint256 _txFeeDenominator,
-		uint256 _txFeeCapInWei
-	) StaffUtil(_staffContract) public {
-		require(_ethFundsWallet != address(0));
-		require(_txFeeAddresses.length == _txFeeNumerator.length);
-		require(_txFeeAddresses.length == 0 || _txFeeDenominator > 0);
-		uint256 totalFeesNumerator;
-		for (uint i = 0; i < txFeeAddresses.length; i++) {
-			require(txFeeAddresses[i] != address(0));
-			require(_txFeeNumerator[i] > 0);
-			require(_txFeeDenominator > _txFeeNumerator[i]);
-			totalFeesNumerator = totalFeesNumerator.add(_txFeeNumerator[i]);
-		}
-		require(_txFeeDenominator == 0 || totalFeesNumerator < _txFeeDenominator);
-
-		ethFundsWallet = _ethFundsWallet;
-		txFeeAddresses = _txFeeAddresses;
-		txFeeNumerator = _txFeeNumerator;
-		txFeeDenominator = _txFeeDenominator;
-		txFeeCapInWei = _txFeeCapInWei;
+	constructor(address payable _wallet) public {
+		wallet = _wallet;
 	}
 
-	function() external payable {
-		require(msg.sender == crowdsale);
+	// Holdex wallet ===============================================================================
 
-		uint256 fundsToTransfer = msg.value;
+	event HoldexWalletChanged(address indexed wallet);
 
-		if (txFeeCapInWei > 0 && txFeeSentInWei < txFeeCapInWei) {
-			for (uint i = 0; i < txFeeAddresses.length; i++) {
-				uint256 txFeeToSendInWei = msg.value.mul(txFeeNumerator[i]).div(txFeeDenominator);
-				if (txFeeToSendInWei > 0) {
-					txFeeSentInWei = txFeeSentInWei.add(txFeeToSendInWei);
-					fundsToTransfer = fundsToTransfer.sub(txFeeToSendInWei);
-					txFeeAddresses[i].transfer(txFeeToSendInWei);
-				}
+	function changeHoldexWallet(address payable _wallet) external onlyOwner {
+		require(_wallet != address(0));
+		wallet = _wallet;
+		emit HoldexWalletChanged(_wallet);
+	}
+
+	// Customers ===================================================================================
+
+	event CustomerAdded(address indexed customer, address indexed wallet, uint256 commission);
+	event CustomerUpdated(address indexed customer, address indexed wallet, uint256 commission);
+	event CustomerRemoved(address indexed customer);
+
+	mapping(address => Customer) public customers;
+
+	struct Customer {
+		address payable wallet;
+		uint256 commissionPercent;
+		mapping(string => Partner) partners;
+	}
+
+	function addCustomer(address _customer, address payable _wallet, uint256 _commissionPercent) external onlyOwner {
+		// Inputs validation
+		require(_customer != address(0), "missing customer address");
+		require(_wallet != address(0), "missing wallet address");
+		require(_commissionPercent < 100, "invalid commission percent");
+
+		// Check if customer already exists
+		if (customers[_customer].wallet == address(0)) {
+			// Customer does not exist, add it
+			customers[_customer].wallet = _wallet;
+			customers[_customer].commissionPercent = _commissionPercent;
+			emit CustomerAdded(_customer, _wallet, _commissionPercent);
+		} else {
+			// Customer already exists, update it
+			customers[_customer].wallet = _wallet;
+			customers[_customer].commissionPercent = _commissionPercent;
+			emit CustomerUpdated(_customer, _wallet, _commissionPercent);
+		}
+	}
+
+	function removeCustomer(address _customer) external onlyOwner {
+		delete customers[_customer];
+		emit CustomerRemoved(_customer);
+	}
+
+	// Partners ====================================================================================
+
+	event PartnerAdded(address indexed customer, string indexed partner, address indexed wallet, uint256 commission);
+	event PartnerUpdated(address indexed customer, string indexed partner, address indexed wallet, uint256 commission);
+	event PartnerRemoved(address indexed customer, string indexed partner);
+
+	struct Partner {
+		address payable wallet;
+		uint256 commissionPercent;
+	}
+
+	function addPartner(address _customer, string calldata _partner, address payable _wallet, uint256 _commissionPercent) external onlyOwner {
+		// Inputs validation
+		require(_customer != address(0), "missing customer address");
+		require(bytes(_partner).length > 0, "missing partner id");
+		require(_wallet != address(0), "missing wallet address");
+		require(_commissionPercent > 0 && _commissionPercent < 100, "invalid commission percent");
+
+		// Check if partner already exists
+		if (customers[_customer].partners[_partner].wallet == address(0)) {
+			// Partner does not exist, add it
+			customers[_customer].partners[_partner] = Partner(_wallet, _commissionPercent);
+			emit PartnerAdded(_customer, _partner, _wallet, _commissionPercent);
+		} else {
+			// Partner already exists, update it
+			customers[_customer].partners[_partner].wallet = _wallet;
+			customers[_customer].partners[_partner].commissionPercent = _commissionPercent;
+			emit PartnerUpdated(_customer, _partner, _wallet, _commissionPercent);
+		}
+	}
+
+	function removePartner(address _customer, string calldata _partner) external {
+		delete customers[_customer].partners[_partner];
+		emit PartnerRemoved(_customer, _partner);
+	}
+
+	// Transfer Funds ==============================================================================
+
+	function transfer(bool holdex, string[] calldata _partners) external payable {
+		// Inputs validation
+		require(customers[msg.sender].wallet != address(0), "customer does not exist");
+		require(msg.value > 0, "transaction value is 0");
+
+		// Check if customer pays any commission
+		if (customers[msg.sender].commissionPercent == 0) {
+			// No commission. Transfer all funds
+			customers[msg.sender].wallet.transfer(msg.value);
+			return;
+		}
+
+		// Check if customer should pay some commission on this transaction
+		if (holdex || _partners.length > 0) {
+			// Commission applies. Calculate each's revenues
+
+			// Customer revenue
+			uint256 customerRevenue = msg.value.div(100).mul(100 - customers[msg.sender].commissionPercent);
+			// Transfer revenue to customer
+			customers[msg.sender].wallet.transfer(customerRevenue);
+
+			// Calculate Holdex revenue
+			uint256 holdexRevenue = msg.value.sub(customerRevenue);
+			uint256 alreadySentPercent = 0;
+			// Calculate partners revenues
+			for (uint256 i = 0; i < _partners.length; i++) {
+				Partner memory p = customers[msg.sender].partners[_partners[i]];
+				require(p.commissionPercent > 0, "invalid partner");
+
+				// Calculate partner revenue
+				uint256 partnerRevenue = holdexRevenue.div(100 - alreadySentPercent).mul(p.commissionPercent);
+				p.wallet.transfer(partnerRevenue);
+
+				// Subtract partner revenue from Holdex revenue
+				alreadySentPercent = alreadySentPercent.add(p.commissionPercent);
+				holdexRevenue = holdexRevenue.sub(partnerRevenue);
 			}
+
+			require(holdexRevenue > 0, "holdex revenue is 0");
+			// Transfer Holdex remained revenue
+			wallet.transfer(holdexRevenue);
 		}
-
-		ethFundsWallet.transfer(fundsToTransfer);
-	}
-
-	function setCrowdsale(address _crowdsale) external onlyOwner {
-		require(_crowdsale != address(0));
-		require(crowdsale == address(0));
-		crowdsale = _crowdsale;
 	}
 }
