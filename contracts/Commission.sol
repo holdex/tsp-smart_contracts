@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/ownership/Ownable.sol";
 contract Commission is Ownable {
 	using SafeMath for uint256;
 
-	address payable wallet;
+	address payable public wallet;
 
 	constructor(address payable _wallet) public {
 		wallet = _wallet;

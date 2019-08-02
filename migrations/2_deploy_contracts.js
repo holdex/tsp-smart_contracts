@@ -34,16 +34,6 @@ module.exports = function (deployer) {
                 DiscountStructs.address,
                 Staff.address
             ]))
-        .then(() => Commission.deployed())
-        .then(c => {
-            console.log("Commission.addCustomer");
-            return c.addCustomer(Crowdsale.address, process.env.ETH_FUNDS_WALLET, 10)
-        })
-        .then(() => Commission.deployed())
-        .then(c => {
-            console.log("Commission.addPartner");
-            return c.addPartner(Crowdsale.address, "INFINITO", process.env.INFINITO_WALLET, 50)
-        })
         .then(() => PromoCodes.deployed())
         .then(p => {
             console.log("PromoCodes.setCrowdsale");
