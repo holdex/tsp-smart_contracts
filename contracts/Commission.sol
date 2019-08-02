@@ -1,4 +1,5 @@
 pragma solidity ^0.5.0;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
@@ -33,7 +34,7 @@ contract Commission is Ownable {
 	struct Customer {
 		address payable wallet;
 		uint256 commissionPercent;
-		mapping(bytes32 => Partner) partners;
+		mapping(string => Partner) partners;
 	}
 
 	function addCustomer(address _customer, address payable _wallet, uint256 _commissionPercent) external onlyOwner {
@@ -63,19 +64,19 @@ contract Commission is Ownable {
 
 	// Partners ====================================================================================
 
-	event PartnerAdded(address indexed customer, bytes32 indexed partner, address indexed wallet, uint256 commission);
-	event PartnerUpdated(address indexed customer, bytes32 indexed partner, address indexed wallet, uint256 commission);
-	event PartnerRemoved(address indexed customer, bytes32 indexed partner);
+	event PartnerAdded(address indexed customer, string indexed partner, address indexed wallet, uint256 commission);
+	event PartnerUpdated(address indexed customer, string indexed partner, address indexed wallet, uint256 commission);
+	event PartnerRemoved(address indexed customer, string indexed partner);
 
 	struct Partner {
 		address payable wallet;
 		uint256 commissionPercent;
 	}
 
-	function addPartner(address _customer, bytes32 _partner, address payable _wallet, uint256 _commissionPercent) external onlyOwner {
+	function addPartner(address _customer, string calldata _partner, address payable _wallet, uint256 _commissionPercent) external onlyOwner {
 		// Inputs validation
 		require(_customer != address(0), "missing customer address");
-		require(_partner != "", "missing partner id");
+		require(bytes(_partner).length > 0, "missing partner id");
 		require(_wallet != address(0), "missing wallet address");
 		require(_commissionPercent > 0 && _commissionPercent < 100, "invalid commission percent");
 
@@ -92,14 +93,14 @@ contract Commission is Ownable {
 		}
 	}
 
-	function removePartner(address _customer, bytes32 _partner) external {
+	function removePartner(address _customer, string calldata _partner) external {
 		delete customers[_customer].partners[_partner];
 		emit PartnerRemoved(_customer, _partner);
 	}
 
 	// Transfer Funds ==============================================================================
 
-	function transfer(bool holdex, bytes32[] calldata _partners) external payable {
+	function transfer(bool holdex, string[] calldata _partners) external payable {
 		// Inputs validation
 		require(customers[msg.sender].wallet != address(0), "customer does not exist");
 		require(msg.value > 0, "transaction value is 0");
