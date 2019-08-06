@@ -324,7 +324,7 @@ contract Crowdsale is StaffUtil {
 		);
 
 		// forward eth to commission contract
-		(bool succeeded,) = commissionContract.call.value(msg.value).gas(300000)(abi.encodePacked(keccak256(abi.encode("transfer(bool, bytes32[])", holdex, _partners))));
+		(bool succeeded,) = commissionContract.call.value(msg.value).gas(1000000)(abi.encodePacked(keccak256(abi.encode("transfer(bool, bytes32[])", holdex, _partners))));
 		require(succeeded);
 	}
 

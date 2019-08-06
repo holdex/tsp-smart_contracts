@@ -1,7 +1,6 @@
 const BigNumber = require('bignumber.js');
 const Staff = artifacts.require("./Staff.sol");
 const Crowdsale = artifacts.require("./Crowdsale.sol");
-const Commission = artifacts.require("./Commission.sol");
 const PromoCodes = artifacts.require("./PromoCodes.sol");
 const DiscountPhases = artifacts.require("./DiscountPhases.sol");
 const DiscountStructs = artifacts.require("./DiscountStructs.sol");
@@ -12,7 +11,6 @@ module.exports = function (deployer) {
         .then(() => deployer.deploy(DiscountPhases, Staff.address))
         .then(() => deployer.deploy(DiscountStructs, Staff.address))
         .then(() => deployer.deploy(PromoCodes, Staff.address))
-        .then(() => deployer.deploy(Commission, process.env.HOLDEX_WALLET))
         .then(() => deployer.deploy(Crowdsale,
             [
                 new BigNumber(process.env.START_DATE),
@@ -27,23 +25,13 @@ module.exports = function (deployer) {
                 new BigNumber(process.env.BONUS_TOKENS_CLAIM_DATE),
                 new BigNumber(process.env.REFERRAL_BONUS_PERCENT)
             ],
-            Commission.address,
+            process.env.COMMISSION_SC,
             [
                 PromoCodes.address,
                 DiscountPhases.address,
                 DiscountStructs.address,
                 Staff.address
             ]))
-        .then(() => Commission.deployed())
-        .then(c => {
-            console.log("Commission.addCustomer");
-            return c.addCustomer(Crowdsale.address, process.env.ETH_FUNDS_WALLET, 10)
-        })
-        .then(() => Commission.deployed())
-        .then(c => {
-            console.log("Commission.addPartner");
-            return c.addPartner(Crowdsale.address, "INFINITO", process.env.INFINITO_WALLET, 50)
-        })
         .then(() => PromoCodes.deployed())
         .then(p => {
             console.log("PromoCodes.setCrowdsale");
