@@ -42,5 +42,15 @@ module.exports = {
             gasPrice: process.env.GAS_PRICE_IN_GWEI * (10 ** 9),
             confirmations: 2,
         },
+    },
+    compilers: {
+        solc: {
+            settings: {
+                optimizer: {
+                    enabled: true,
+                    runs: 100000
+                },
+            }
+        }
     }
 };
