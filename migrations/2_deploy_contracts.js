@@ -25,12 +25,12 @@ module.exports = function (deployer) {
                 new BigNumber(process.env.BONUS_TOKENS_CLAIM_DATE),
                 new BigNumber(process.env.REFERRAL_BONUS_PERCENT)
             ],
-            process.env.COMMISSION_SC,
             [
                 PromoCodes.address,
                 DiscountPhases.address,
                 DiscountStructs.address,
-                Staff.address
+                Staff.address,
+                process.env.COMMISSION_SC
             ]))
         .then(() => PromoCodes.deployed())
         .then(p => {
