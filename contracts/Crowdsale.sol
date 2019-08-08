@@ -7,6 +7,7 @@ import "./interfaces/ERC20Token.sol";
 import "./interfaces/IDiscountPhases.sol";
 import "./interfaces/IDiscountStructs.sol";
 import "./interfaces/IPromoCodes.sol";
+import "./interfaces/ICommission.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 
@@ -18,7 +19,7 @@ contract Crowdsale is StaffUtil {
 	IDiscountPhases discountPhasesContract;
 	IDiscountStructs discountStructsContract;
 
-	address payable commissionContract;
+	ICommission commissionContract;
 	uint256 referralBonusPercent;
 	uint256 startDate;
 
@@ -98,8 +99,7 @@ contract Crowdsale is StaffUtil {
 
 	constructor (
 		uint256[11] memory uint256Args,
-		address payable _commissionContract,
-		address[4] memory addressArgs
+		address[5] memory addressArgs
 	) StaffUtil(IStaff(addressArgs[3])) public {
 
 		// uint256 args
@@ -116,10 +116,10 @@ contract Crowdsale is StaffUtil {
 		referralBonusPercent = uint256Args[10];
 
 		// address args
-		commissionContract = _commissionContract;
 		promoCodesContract = IPromoCodes(addressArgs[0]);
 		discountPhasesContract = IDiscountPhases(addressArgs[1]);
 		discountStructsContract = IDiscountStructs(addressArgs[2]);
+		commissionContract = ICommission(addressArgs[4]);
 
 		require(startDate < crowdsaleStartDate);
 		require(crowdsaleStartDate < endDate);
@@ -127,7 +127,7 @@ contract Crowdsale is StaffUtil {
 		require(tokenRate > 0);
 		require(tokensForSaleCap > 0);
 		require(minPurchaseInWei <= maxInvestorContributionInWei);
-		require(commissionContract != address(0));
+		require(address(commissionContract) != address(0));
 	}
 
 	function getState() external view returns (bool[2] memory boolArgs, uint256[18] memory uint256Args, address[6] memory addressArgs) {
@@ -152,7 +152,7 @@ contract Crowdsale is StaffUtil {
 		uint256Args[16] = referralBonusPercent;
 		uint256Args[17] = getTokensForSaleCap();
 		addressArgs[0] = address(staffContract);
-		addressArgs[1] = commissionContract;
+		addressArgs[1] = address(commissionContract);
 		addressArgs[2] = address(promoCodesContract);
 		addressArgs[3] = address(discountPhasesContract);
 		addressArgs[4] = address(discountStructsContract);
@@ -237,14 +237,14 @@ contract Crowdsale is StaffUtil {
 		tokenRate = _tokenRate;
 	}
 
-	function buyTokens(bytes32 _promoCode, address _referrer, uint _discountId, bool holdex, bytes32[] calldata _partners) external payable {
-		require(!finalized);
-		require(!paused);
-		require(startDate < now);
-		require(investors[msg.sender].status == InvestorStatus.WHITELISTED);
-		require(msg.value > 0);
-		require(msg.value >= minPurchaseInWei);
-		require(investors[msg.sender].contributionInWei.add(msg.value) <= maxInvestorContributionInWei);
+	function buyTokens(bytes32 _promoCode, address _referrer, uint _discountId, bool _holdex, bytes32[] calldata _partners) external payable {
+		require(!finalized, "crowdsale is finalized");
+		require(!paused, "crowdsale is paused");
+		require(startDate < now, "crowdsale not started");
+		require(investors[msg.sender].status == InvestorStatus.WHITELISTED, "investor not whitelisted");
+		require(msg.value > 0, "msg.value is 0");
+		require(msg.value >= minPurchaseInWei, "msg.value is lower than min");
+		require(investors[msg.sender].contributionInWei.add(msg.value) <= maxInvestorContributionInWei, "exceeds max contribution");
 
 		uint purchaseId = investors[msg.sender].tokensPurchases.push(TokensPurchase({
 			value : 0,
@@ -283,7 +283,7 @@ contract Crowdsale is StaffUtil {
 		}
 
 		// check that calculated tokens will not exceed tokens for sale cap
-		require(fitsTokensForSaleCap(purchasedAmount.add(bonusAmount).add(referrerBonusAmount)));
+		require(fitsTokensForSaleCap(purchasedAmount.add(bonusAmount).add(referrerBonusAmount)), "exceeds hard cap");
 
 		// update crowdsale total amount of capital raised
 		weiRaised = weiRaised.add(msg.value);
@@ -324,8 +324,7 @@ contract Crowdsale is StaffUtil {
 		);
 
 		// forward eth to commission contract
-		(bool succeeded,) = commissionContract.call.value(msg.value).gas(300000)(abi.encodePacked(keccak256(abi.encode("transfer(bool, bytes32[])", holdex, _partners))));
-		require(succeeded);
+		commissionContract.transfer.value(msg.value)(_holdex, _partners);
 	}
 
 	function sendTokens(address _investor, uint256 _amount) external onlyOwner {

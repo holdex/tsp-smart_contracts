@@ -23,9 +23,7 @@ console.log("MAX_INVESTOR_CONTRIBUTION_IN_ETH =", process.env.MAX_INVESTOR_CONTR
 console.log("PURCHASED_TOKENS_CLAIM_DATE      =", process.env.PURCHASED_TOKENS_CLAIM_DATE);
 console.log("BONUS_TOKENS_CLAIM_DATE          =", process.env.BONUS_TOKENS_CLAIM_DATE);
 console.log("REFERRAL_BONUS_PERCENT           =", process.env.REFERRAL_BONUS_PERCENT);
-console.log("ETH_FUNDS_WALLET                 =", process.env.ETH_FUNDS_WALLET);
-console.log("INFINITO_WALLET                  =", process.env.INFINITO_WALLET);
-console.log("HOLDEX_WALLET                    =", process.env.HOLDEX_WALLET);
+console.log("COMMISSION_SC                    =", process.env.COMMISSION_SC);
 console.log("STAFF_ADDR                       =", process.env.STAFF_ADDR);
 console.log("OWNER_ADDR                       =", process.env.OWNER_ADDR);
 console.log("============================================================================");
@@ -44,5 +42,15 @@ module.exports = {
             gasPrice: process.env.GAS_PRICE_IN_GWEI * (10 ** 9),
             confirmations: 2,
         },
+    },
+    compilers: {
+        solc: {
+            settings: {
+                optimizer: {
+                    enabled: true,
+                    runs: 100000
+                },
+            }
+        }
     }
 };
