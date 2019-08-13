@@ -130,7 +130,7 @@ Return the amount of pruchased tokens by a single contributor.
 Internal function. Calculates the amount of tokens a contributor should receive after token purchase. 
 >Parameters:
 >`_investor` - contributor wallet address
->`_investor` - ID of the transaction recorded in distribution contract ledger
+>`_purchaseId` - ID of the transaction recorded in distribution contract ledger
 
 
 ##### `function setPaused(bool p)`
