@@ -151,3 +151,177 @@ Below are listed the events that are stored in the blockchain. You can parse the
 ##### `event TokensPurchaseRefunded`
 ##### `event TokensSent`
 ##### `event TokensClaimed`
+
+---
+# Bonus campaign
+Bonuses campaigns allow you to send free additional tokens over each token purchase. Campaigns are limited by time. Bonus campaigns alos poses a lock date which will lock both purchased and bonus tokens until a certain date.
+
+## Functions
+
+##### `function getBonus(address _investor, uint _purchaseId, uint256 _purchasedTokensAmount, uint256 _purchasedWeiAmount, uint _discountId)`
+Internal function. Returns the amount of bonus a contributor received from his token purchase.
+>Parameters:
+>`_investor` - contributor wallet address
+>`_purchaseId` - ID of the transaction recorded in distribution contract ledger
+>`_purchasedTokensAmount` - amount of tokens purchased
+>`_purchasedWeiAmount` - amount of ETH used for purchase
+>`_discountId` - bonus ID applied
+
+
+##### `function getBlockedBonus(address _investor, uint _purchaseId)`
+Returns the amount of bonus tokens locked by a transaction.
+>Parameters:
+>`_investor` - contributor wallet address
+>`_purchaseId` - ID of the transaction recorded in distribution contract ledger
+
+
+##### `function getBlockedPurchased(address _investor, uint _purchaseId)`
+Returns the amount of purchased tokens locked by a transaction.
+>Parameters:
+>`_investor` - contributor wallet address
+>`_purchaseId` - ID of the transaction recorded in distribution contract ledger
+
+
+##### `function cancelBonus(address _investor, uint _purchaseId)`
+Internal function. Cencels bonus allocation.
+>Parameters:
+>`_investor` - contributor wallet address
+>`_purchaseId` - ID of the transaction recorded in distribution contract ledger
+
+##### `function cancelPurchase(address _investor, uint _purchaseId)`
+Internal function. Cencels token purchase.
+>Parameters:
+>`_investor` - contributor wallet address
+>`_purchaseId` - ID of the transaction recorded in distribution contract ledger
+
+
+##### `function calculateBonusAmount(uint256 _purchasedAmount, uint _discountId)`
+Internal function. Calculates the amount if bonus to be allocated in a token purchase.
+>Parameters:
+>`_purchasedAmount` - amount of tokens purchased
+>`_discountId` - ID of the bonus applied
+
+##### `function addDiscountPhase(string memory _name, uint8 _percent, uint _fromDate, uint _toDate, uint _lockDate)`
+Internal function. Creates a new bonus campaign for token distribution.
+>Parameters:
+>`_name` - campaign name
+>`_percent` - bonus prcent allocated per purchase
+>`_fromDate` - campaign start date
+>`_toDate` - campaign end date
+>`_lockDate` - campaign lock date. (date until both purchase and bonus tokens will be locked)
+
+
+##### `function discontinueDiscountPhase(uint _index)`
+Internal function. Discontinues active bonus.
+>Parameter:
+>`_index` - bonus campaign ID
+
+
+## Events
+
+##### `event DiscountPhaseAdded`
+##### `event DiscountPhaseBonusApplied`
+##### `event DiscountPhaseBonusCanceled`
+##### `event DiscountPhasePurchaseCanceled`
+##### `event DiscountPhaseDiscontinued`
+
+---
+
+# Bonus structure campaign
+Unlike bonus campaigns, bonus structure follow a certain purchase pattern before it is applied. Bonus structure require a token purchase to exceed a certain amount of ETH to be applied. 
+
+## Functions
+
+##### `function setCrowdsale(IStaffUtil _crowdsale)`
+Internal function. Connects the bonus structure campaign contract with the token distribution contract.
+>Parameter:
+>`_crowdsale` - token distribution contract address
+
+##### `function getBonus(address _investor, uint256 _purchasedAmount, uint256 _purchasedValue)`
+Internal function. Returns the amount of bonus a contributor received from his token purchase.
+>Parameters:
+>`_investor` - contributor wallet address
+>`_purchasedAmount` - amount of tokens purchased in transaction
+>`_purchasedValue` - amount of ETH consumed for transaction
+
+
+##### `function calculateBonus(uint256 _purchasedAmount, uint256 _purchasedValue)`
+Internal function. Calculates the amount if bonus to be allocated in a token purchase.
+>Parameters:
+>`_purchasedAmount` - amount of tokens purchased in transaction
+>`_purchasedValue` - amount of ETH consumed for transaction
+
+
+##### `function addDiscountStruct(bytes32 _name, uint256 _tokens, uint[2] calldata _dates, uint256[] calldata _fromWei, uint256[] calldata _toWei, uint256[] calldata _percent)`
+Internal function. Creates a new bonus structure campaign.
+>Parameters:
+>`_name` - campaign name
+>`_tokens` - amount of tokens to be allocated for tha campaign
+>`_dates` - start and end date
+>`_fromWei` - minimal amount of ETH requied for bonus to be applied
+>`_toWei` - maximal amount of ETH requied for bonus to be applied
+>`_percent` - bonus percent allocated per purchase
+
+
+##### `function removeDiscountStruct(uint _index)`
+Internal function. Discontinues a bonus structure campaign. 
+>Parameter:
+>`_index` - bonus campaign ID
+
+
+## Events
+
+
+##### `event DiscountStructAdded`
+##### `event DiscountStructRemoved`
+##### `event DiscountStructUsed`
+
+---
+
+# Promo codes
+Promo codes contract is responsible for creating promo-codes and allocating bonus tokens to contributors who purchased with a promo-code. 
+
+## Functions
+
+##### `function setCrowdsale(IStaffUtil _crowdsale)`
+Internal function. Connects the bonus structure campaign contract with the token distribution contract.
+>Parameter:
+>`_crowdsale` - token distribution contract address
+
+
+##### `function applyBonusAmount(address _investor, uint256 _purchasedAmount, bytes32 _promoCode)`
+Internal function. Applies bonus to a token purchase. 
+>Parameters:
+>`_investor` - contributor wallet address
+>`_purchasedAmount` - amount of tokens purchased in transaction
+>`_promoCode` - promo-code applied for transaction
+
+
+##### `function calculateBonusAmount(address _investor, uint256 _purchasedAmount, bytes32 _promoCode)`
+Internal function. Calculates the amount of bonus to be applied to a token purchase.
+>Parameters:
+>`_investor` - contributor wallet address
+>`_purchasedAmount` - amount of tokens purchased in transaction
+>`_promoCode` - promo-code applied for transaction
+
+
+##### `function addPromoCode(string memory _name, bytes32 _code, uint256 _maxUses, uint8 _percent)`
+Internal function. Creates a new promo-code. 
+>`_name` - promo-code name
+>`_code` - promo-code code
+>`_maxUses` - maximum amount of purchases made from different wallet addresses that can be made with this promo code
+>`_percent` - bonus percent allocated per purchase
+
+
+##### `function removePromoCode(bytes32 _code)`
+Internal function. Removes an active promo-code. 
+>Parameter:
+>`_code` - promo-code code
+
+
+
+## Events
+
+##### `event PromoCodeAdded`
+##### `event PromoCodeRemoved`
+##### `event PromoCodeUsed`
