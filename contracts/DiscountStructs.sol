@@ -59,13 +59,31 @@ contract DiscountStructs is StaffUtil {
 		require(msg.sender == crowdsale);
 		_;
 	}
-
+	
+	/**
+	function setCrowdsale
+	
+	Connect bonus contract with distribution contract.
+	Parameter: 
+	_crowdsale - distribution contract address
+	/*
+	
 	function setCrowdsale(IStaffUtil _crowdsale) external onlyOwner {
 		require(crowdsale == address(0));
 		require(_crowdsale.staffContract() == address(staffContract));
 		crowdsale = address(_crowdsale);
 	}
-
+	
+	/**
+	function getBonus
+	
+	Internal function. Returns the amount of bonus a contributor received from a token purchase.
+	Parameters: 
+	_investor - contributor wallet address
+	_purchasedAmount - amount of tokens purchased in transaction
+	_purchasedValue - amount of ETH consumed for transaction
+	/*
+	
 	function getBonus(address _investor, uint256 _purchasedAmount, uint256 _purchasedValue) public onlyCrowdsale returns (uint256) {
 		for (uint i = 0; i < discountStructs.length; i++) {
 			if (now >= discountStructs[i].fromDate && now <= discountStructs[i].toDate) {
@@ -92,7 +110,16 @@ contract DiscountStructs is StaffUtil {
 		}
 		return 0;
 	}
-
+	
+	/**
+	function calculateBonus
+	
+	Internal function. Calculates the amount if bonus to be allocated in a token purchase.
+	Parameters: 
+	_purchasedAmount - amount of tokens purchased in transaction
+	_purchasedValue - amount of ETH consumed for transaction
+	/*
+	
 	function calculateBonus(uint256 _purchasedAmount, uint256 _purchasedValue) public view returns (uint256) {
 		for (uint i = 0; i < discountStructs.length; i++) {
 			if (now >= discountStructs[i].fromDate && now <= discountStructs[i].toDate) {
@@ -117,7 +144,20 @@ contract DiscountStructs is StaffUtil {
 		}
 		return 0;
 	}
-
+	
+	/**
+	function addDiscountStruct
+	
+	Internal function. Creates a new bonus structure campaign.
+	Parameters: 
+	_name - campaign name
+	_tokens - amount of tokens to be allocated for tha campaign
+	_dates - start and end date
+	_fromWei - minimal amount of ETH requied for bonus to be applied
+	_toWei - maximal amount of ETH requied for bonus to be applied
+	_percent - bonus percent allocated per purchase
+	/*
+	
 	function addDiscountStruct(bytes32 _name, uint256 _tokens, uint[2] calldata _dates, uint256[] calldata _fromWei, uint256[] calldata _toWei, uint256[] calldata _percent) external onlyOwnerOrStaff {
 		require(_name.length > 0);
 		require(_tokens > 0);
@@ -142,7 +182,15 @@ contract DiscountStructs is StaffUtil {
 
 		emit DiscountStructAdded(index, _name, _tokens, _dates, _fromWei, _toWei, _percent, now, msg.sender);
 	}
-
+	
+	/**
+	function removeDiscountStruct
+	
+	Internal function. Discontinues a bonus structure campaign.
+	Parameter: 
+	_index - bonus campaign ID
+	/*
+	
 	function removeDiscountStruct(uint _index) public onlyOwnerOrStaff {
 		require(now < discountStructs[_index].toDate);
 		delete discountStructs[_index];
