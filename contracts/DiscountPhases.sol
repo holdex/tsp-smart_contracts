@@ -16,13 +16,13 @@ contract DiscountPhases is StaffUtil {
 		_;
 	}
 	
-	/**
+	/*
 	function setCrowdsale
 	
 	Connect bonus contract with distribution contract.
 	Parameter: 
 	_crowdsale - distribution contract address
-	/*
+	*/
 	
 	function setCrowdsale(IStaffUtil _crowdsale) external onlyOwner {
 		require(crowdsale == address(0));
@@ -66,17 +66,17 @@ contract DiscountPhases is StaffUtil {
 	constructor(IStaff _staffContract) StaffUtil(_staffContract) public {
 	}
 	
-	/**
+	/*
 	function getBonus
 	
-	Internal function. Returns the amount of bonus a contributor received from a token purchase.
+	Internal function. Returns the amount of bonus a contributor should receive from a token purchase.
 	Parameters: 
 	_investor - contributor wallet address
 	_purchaseId - ID of the transaction recorded in distribution contract ledger
 	_purchasedTokensAmount - amount of tokens purchased
 	_purchasedWeiAmount - amount of ETH used for purchase
 	_discountId - bonus ID applied
-	/*
+	*/
 
 	function getBonus(address _investor, uint _purchaseId, uint256 _purchasedTokensAmount, uint256 _purchasedWeiAmount, uint _discountId) public onlyCrowdsale returns (uint256) {
 		uint256 bonusAmount = calculateBonusAmount(_purchasedTokensAmount, _discountId);
@@ -95,14 +95,14 @@ contract DiscountPhases is StaffUtil {
 		return bonusAmount;
 	}
 	
-	/**
+	/*
 	function getBlockedBonus
 	
 	Returns the amount of bonus tokens locked by a transaction.
 	Parameters: 
 	_investor - contributor wallet address
 	_purchaseId - ID of the transaction recorded in distribution contract ledger
-	/*
+	*/
 	
 	function getBlockedBonus(address _investor, uint _purchaseId) public view returns (uint256) {
 		InvestorBonus storage discountBonus = investorBonus[_investor][_purchaseId];
@@ -112,14 +112,14 @@ contract DiscountPhases is StaffUtil {
 		return 0;
 	}
 	
-	/**
+	/*
 	function getBlockedPurchased
 	
 	Returns the amount of purchased tokens locked by a transaction.
 	Parameters: 
 	_investor - contributor wallet address
 	_purchaseId - ID of the transaction recorded in distribution contract ledger
-	/*
+	*/
 
 	function getBlockedPurchased(address _investor, uint _purchaseId) public view returns (uint256[2] memory purchasedAmount) {
 		InvestorPurchase storage discountPurchase = investorPurchase[_investor][_purchaseId];
@@ -129,14 +129,14 @@ contract DiscountPhases is StaffUtil {
 		}
 	}
 	
-	/**
+	/*
 	function cancelBonus
 	
 	Internal function. Cencels bonus allocation.
 	Parameters: 
 	_investor - contributor wallet address
 	_purchaseId - ID of the transaction recorded in distribution contract ledger
-	/*
+	*/
 	
 	function cancelBonus(address _investor, uint _purchaseId) public onlyCrowdsale {
 		InvestorBonus storage purchaseBonus = investorBonus[_investor][_purchaseId];
@@ -146,14 +146,14 @@ contract DiscountPhases is StaffUtil {
 		delete (investorBonus[_investor][_purchaseId]);
 	}
 	
-	/**
+	/*
 	function cancelPurchase
 	
 	Internal function. Cencels token purchase related to bonus allocation.
 	Parameters: 
 	_investor - contributor wallet address
 	_purchaseId - ID of the transaction recorded in distribution contract ledger
-	/*
+	*/
 	
 	function cancelPurchase(address _investor, uint _purchaseId) public onlyCrowdsale {
 		InvestorPurchase storage discountPurchase = investorPurchase[_investor][_purchaseId];
@@ -163,14 +163,14 @@ contract DiscountPhases is StaffUtil {
 		delete (investorPurchase[_investor][_purchaseId]);
 	}
 	
-	/**
+	/*
 	function calculateBonusAmount
 	
 	Internal function. Calculates the amount if bonus to be allocated in a token purchase.
 	Parameters: 
 	_purchasedAmount - amount of tokens purchased
 	_discountId - ID of the bonus applied
-	/*
+	*/
 	
 	function calculateBonusAmount(uint256 _purchasedAmount, uint _discountId) public view returns (uint256) {
 		if (discountPhases.length <= _discountId) {
@@ -182,7 +182,7 @@ contract DiscountPhases is StaffUtil {
 		return 0;
 	}
 	
-	/**
+	/*
 	function addDiscountPhase
 	
 	Internal function. Creates a new bonus campaign for token distribution.
@@ -192,7 +192,7 @@ contract DiscountPhases is StaffUtil {
 	_fromDate - campaign start date
 	_toDate - campaign end date
 	_lockDate - campaign lock date. (date until both purchase and bonus tokens will be locked)
-	/*
+	*/
 	
 	function addDiscountPhase(string memory _name, uint8 _percent, uint _fromDate, uint _toDate, uint _lockDate) public onlyOwnerOrStaff {
 		require(bytes(_name).length > 0);
@@ -202,13 +202,13 @@ contract DiscountPhases is StaffUtil {
 		emit DiscountPhaseAdded(index, _name, _percent, _fromDate, _toDate, _lockDate, now, msg.sender);
 	}
 	
-	/**
+	/*
 	function discontinueDiscountPhase
 	
 	Internal function. Discontinues active bonus.
 	Parameter:
 	_index - bonus campaign ID
-	/*
+	*/
 	
 	function discontinueDiscountPhase(uint _index) public onlyOwnerOrStaff {
 		require(now < discountPhases[_index].toDate);
