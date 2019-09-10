@@ -684,7 +684,7 @@ contract Crowdsale is StaffUtil {
 	/*
 	function getInvestorTokensPurchase
 	
-	Internal function. Calculates the amount of tokens a contributor should receive after token purchase.
+	Returns information about contributor token purchase, bonuses and referrer bonus.
 	Parameters: 
 	_investor - contributor wallet address
 	_purchaseId - ID of the transaction recorded in distribution contract ledger
