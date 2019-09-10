@@ -33,13 +33,13 @@ contract PromoCodes is StaffUtil {
 		_;
 	}
 	
-	/**
+	/*
 	function setCrowdsale
 	
 	Connect bonus contract with distribution contract.
 	Parameter: 
 	_crowdsale - distribution contract address
-	/*
+	*/
 
 	function setCrowdsale(IStaffUtil _crowdsale) external onlyOwner {
 		require(crowdsale == address(0));
@@ -47,7 +47,7 @@ contract PromoCodes is StaffUtil {
 		crowdsale = address(_crowdsale);
 	}
 	
-	/**
+	/*
 	function applyBonusAmount
 	
 	Internal function. Returns the amount of bonus a contributor received from a token purchase.
@@ -55,7 +55,7 @@ contract PromoCodes is StaffUtil {
 	_investor - contributor wallet address
 	_purchasedAmount - amount of tokens purchased in transaction
 	_promoCode - promo-code applied for transaction
-	/*
+	*/
 	
 	function applyBonusAmount(address _investor, uint256 _purchasedAmount, bytes32 _promoCode) public onlyCrowdsale returns (uint256) {
 		if (promoCodes[_promoCode].percent == 0
@@ -69,7 +69,7 @@ contract PromoCodes is StaffUtil {
 		return _purchasedAmount.mul(promoCodes[_promoCode].percent).div(100);
 	}
 	
-	/**
+	/*
 	function calculateBonusAmount
 	
 	Internal function. Calculates the amount of bonus to be applied to a token purchase.
@@ -77,7 +77,7 @@ contract PromoCodes is StaffUtil {
 	_investor - contributor wallet address
 	_purchasedAmount - amount of tokens purchased in transaction
 	_promoCode - promo-code applied for transaction
-	/*
+	*/
 	
 	function calculateBonusAmount(address _investor, uint256 _purchasedAmount, bytes32 _promoCode) public view returns (uint256) {
 		if (promoCodes[_promoCode].percent == 0
@@ -88,7 +88,7 @@ contract PromoCodes is StaffUtil {
 		return _purchasedAmount.mul(promoCodes[_promoCode].percent).div(100);
 	}
 	
-	/**
+	/*
 	function addPromoCode
 	
 	Internal function. Creates a new promo-code. 
@@ -97,7 +97,7 @@ contract PromoCodes is StaffUtil {
 	_code - promo-code code
 	_maxUses - maximum amount of purchases made from different wallet addresses that can be made with this promo code
 	_percent - bonus percent allocated per purchase
-	/*
+	*/
 	
 	function addPromoCode(string memory _name, bytes32 _code, uint256 _maxUses, uint8 _percent) public onlyOwnerOrStaff {
 		require(bytes(_name).length > 0);
@@ -112,13 +112,13 @@ contract PromoCodes is StaffUtil {
 		emit PromoCodeAdded(_code, _name, _percent, _maxUses, now, msg.sender);
 	}
 	
-	/**
+	/*
 	function addPromoCode
 	
 	Internal function. Removes an active promo-code. 
 	Parameter: 
 	_code - promo-code code
-	/*
+	*/
 	
 	function removePromoCode(bytes32 _code) public onlyOwnerOrStaff {
 		delete promoCodes[_code];
