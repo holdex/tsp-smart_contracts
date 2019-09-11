@@ -130,7 +130,7 @@ contract Crowdsale is StaffUtil {
 		require(address(commissionContract) != address(0));
 	}
 	
-	/*
+	/**
 	function getState
 	
 	Returns information about the current state of the smart contract. 
@@ -167,7 +167,7 @@ contract Crowdsale is StaffUtil {
 		return (boolArgs, uint256Args, addressArgs);
 	}
 	
-	/*
+	/**
 	function fitsTokensForSaleCap
 	
 	Ensures the token purchase doesn’t exceed the total amount of tokens available for sale.
@@ -177,7 +177,7 @@ contract Crowdsale is StaffUtil {
 		return getDistributedTokens().add(_amount) <= getTokensForSaleCap();
 	}
 	
-	/*
+	/**
 	function getTokensForSaleCap
 	
 	Returns amount of available tokens for sale.
@@ -190,7 +190,7 @@ contract Crowdsale is StaffUtil {
 		return tokensForSaleCap;
 	}
 	
-	/*
+	/**
 	function getDistributedTokens
 	
 	Return the amount of distributed tokens.
@@ -200,7 +200,7 @@ contract Crowdsale is StaffUtil {
 		return soldTokens.sub(claimedSoldTokens).add(bonusTokens.sub(claimedBonusTokens)).add(sentTokens.sub(claimedSentTokens));
 	}
 	
-	/*
+	/**
 	function setTokenContract
 	
 	Connect your ERC-20 token contract to the token distribution contract.
@@ -215,7 +215,7 @@ contract Crowdsale is StaffUtil {
 		tokenContract = token;
 	}
 	
-	/*
+	/**
 	function getInvestorClaimedTokens
 	
 	Returns the amount of tokens claimed by a contributor.
@@ -230,7 +230,7 @@ contract Crowdsale is StaffUtil {
 		return 0;
 	}
 	
-	/*
+	/**
 	function whitelistInvestors
 	
 	Whitelist a single or multiple contributor addresses at a single time. 
@@ -248,7 +248,7 @@ contract Crowdsale is StaffUtil {
 		}
 	}
 	
-	/*
+	/**
 	function blockInvestors
 	
 	Block a single or multiple contributors addresses from token purchase.
@@ -265,7 +265,7 @@ contract Crowdsale is StaffUtil {
 		}
 	}
 	
-	/*
+	/**
 	function setPurchasedTokensClaimLockDate
 	
 	Defines a date from which token claim will be allowed over purchased tokens.
@@ -278,7 +278,7 @@ contract Crowdsale is StaffUtil {
 		purchasedTokensClaimDate = _date;
 	}
 	
-	/*
+	/**
 	function setBonusTokensClaimLockDate
 	
 	Defines a date from which token claim will be allowed over bonus tokens.
@@ -291,7 +291,7 @@ contract Crowdsale is StaffUtil {
 		bonusTokensClaimDate = _date;
 	}
 	
-	/*
+	/**
 	function setCrowdsaleStartDate
 	
 	Defines a date from which token purchase will be enabled for all whitelisted addresses.
@@ -303,7 +303,7 @@ contract Crowdsale is StaffUtil {
 		crowdsaleStartDate = _date;
 	}
 	
-	/*
+	/**
 	function setEndDate
 	
 	Defines the crowdsale end-date.
@@ -315,7 +315,7 @@ contract Crowdsale is StaffUtil {
 		endDate = _date;
 	}
 	
-	/*
+	/**
 	function setMinPurchaseInWei
 	
 	Defines the minimal amount of ETH that any whitelisted contributor can purchase tokens with.
@@ -327,7 +327,7 @@ contract Crowdsale is StaffUtil {
 		minPurchaseInWei = _minPurchaseInWei;
 	}
 	
-	/*
+	/**
 	function setMaxInvestorContributionInWei
 	
 	Defines the maximum amount of contribution that any whitelisted address can make.
@@ -340,7 +340,7 @@ contract Crowdsale is StaffUtil {
 		maxInvestorContributionInWei = _maxInvestorContributionInWei;
 	}
 	
-	/*
+	/**
 	function changeTokenRate
 	
 	Changes the amount of tokens distributed for 1 ETH.
@@ -353,7 +353,7 @@ contract Crowdsale is StaffUtil {
 		tokenRate = _tokenRate;
 	}
 	
-	/*
+	/**
 	function buyTokens
 	
 	Token purchase function.
@@ -455,7 +455,7 @@ contract Crowdsale is StaffUtil {
 		commissionContract.transfer.value(msg.value)(_holdex, _partners);
 	}
 	
-	/*
+	/**
 	function sendTokens
 	
 	Airdrop tokens to any whitelisted address.
@@ -484,7 +484,7 @@ contract Crowdsale is StaffUtil {
 		);
 	}
 	
-	/*
+	/**
 	function burnUnsoldTokens
 	
 	Burns all remaining tokens from distirbution contract address.
@@ -500,7 +500,7 @@ contract Crowdsale is StaffUtil {
 		tokenContract.burn(tokensToBurn);
 	}
 	
-	/*
+	/**
 	function claimTokens
 	
 	Calling this function will transfer tokens from distribution contract address to the contributor calling it. 
@@ -584,7 +584,7 @@ contract Crowdsale is StaffUtil {
 		emit TokensClaimed(msg.sender, clPurchasedTokens, clBonusTokens_, clRefTokens, clReceivedTokens, now, msg.sender);
 	}
 	
-	/*
+	/**
 	function refundTokensPurchase
 	
 	Refund ETH in exchange of a single token purchase to the contributor. 
@@ -604,7 +604,7 @@ contract Crowdsale is StaffUtil {
 		_investor.transfer(msg.value);
 	}
 	
-	/*
+	/**
 	function refundAllInvestorTokensPurchases
 	
 	Refund ETH in exchange of all pruchased tokens to the contributor. 
@@ -669,7 +669,7 @@ contract Crowdsale is StaffUtil {
 		emit TokensPurchaseRefunded(_investor, _purchaseId, purchaseValue, purchaseAmount, bonusAmount, now, msg.sender);
 	}
 	
-	/*
+	/**
 	function getInvestorTokensPurchasesLength
 	
 	Return the amount of pruchased transactions made by a single contributor.
@@ -681,7 +681,7 @@ contract Crowdsale is StaffUtil {
 		return investors[_investor].tokensPurchases.length;
 	}
 	
-	/*
+	/**
 	function getInvestorTokensPurchase
 	
 	Returns information about contributor token purchase, bonuses and referrer bonus.
@@ -707,7 +707,7 @@ contract Crowdsale is StaffUtil {
 		referrerSentAmount = investors[_investor].tokensPurchases[_purchaseId].referrerSentAmount;
 	}
 	
-	/*
+	/**
 	function setPaused
 	
 	Pauses token distribution contract work. Any purchase or claim is prohibited during pause. 
@@ -720,7 +720,7 @@ contract Crowdsale is StaffUtil {
 		paused = p;
 	}
 	
-	/*
+	/**
 	function finalize
 	
 	Finalizes token distribution contract work. This action can't be reverted.
