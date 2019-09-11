@@ -16,7 +16,7 @@ contract DiscountPhases is StaffUtil {
 		_;
 	}
 	
-	/*
+	/**
 	function setCrowdsale
 	
 	Connect bonus contract with distribution contract.
@@ -66,7 +66,7 @@ contract DiscountPhases is StaffUtil {
 	constructor(IStaff _staffContract) StaffUtil(_staffContract) public {
 	}
 	
-	/*
+	/**
 	function getBonus
 	
 	Internal function. Returns the amount of bonus a contributor should receive from a token purchase.
@@ -95,7 +95,7 @@ contract DiscountPhases is StaffUtil {
 		return bonusAmount;
 	}
 	
-	/*
+	/**
 	function getBlockedBonus
 	
 	Returns the amount of bonus tokens locked by a transaction.
@@ -112,7 +112,7 @@ contract DiscountPhases is StaffUtil {
 		return 0;
 	}
 	
-	/*
+	/**
 	function getBlockedPurchased
 	
 	Returns the amount of purchased tokens locked by a transaction.
@@ -129,7 +129,7 @@ contract DiscountPhases is StaffUtil {
 		}
 	}
 	
-	/*
+	/**
 	function cancelBonus
 	
 	Internal function. Cencels bonus allocation.
@@ -146,7 +146,7 @@ contract DiscountPhases is StaffUtil {
 		delete (investorBonus[_investor][_purchaseId]);
 	}
 	
-	/*
+	/**
 	function cancelPurchase
 	
 	Internal function. Cencels token purchase related to bonus allocation.
@@ -163,7 +163,7 @@ contract DiscountPhases is StaffUtil {
 		delete (investorPurchase[_investor][_purchaseId]);
 	}
 	
-	/*
+	/**
 	function calculateBonusAmount
 	
 	Internal function. Calculates the amount if bonus to be allocated in a token purchase.
@@ -182,7 +182,7 @@ contract DiscountPhases is StaffUtil {
 		return 0;
 	}
 	
-	/*
+	/**
 	function addDiscountPhase
 	
 	Internal function. Creates a new bonus campaign for token distribution.
@@ -202,7 +202,7 @@ contract DiscountPhases is StaffUtil {
 		emit DiscountPhaseAdded(index, _name, _percent, _fromDate, _toDate, _lockDate, now, msg.sender);
 	}
 	
-	/*
+	/**
 	function discontinueDiscountPhase
 	
 	Internal function. Discontinues active bonus.
