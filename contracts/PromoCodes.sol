@@ -33,7 +33,7 @@ contract PromoCodes is StaffUtil {
 		_;
 	}
 	
-	/*
+	/**
 	function setCrowdsale
 	
 	Connect bonus contract with distribution contract.
@@ -47,10 +47,10 @@ contract PromoCodes is StaffUtil {
 		crowdsale = address(_crowdsale);
 	}
 	
-	/*
+	/**
 	function applyBonusAmount
 	
-	Internal function. Returns the amount of bonus a contributor received from a token purchase.
+	Internal function. Returns the amount of bonus a contributor should receive from a token purchase.
 	Parameters: 
 	_investor - contributor wallet address
 	_purchasedAmount - amount of tokens purchased in transaction
@@ -69,7 +69,7 @@ contract PromoCodes is StaffUtil {
 		return _purchasedAmount.mul(promoCodes[_promoCode].percent).div(100);
 	}
 	
-	/*
+	/**
 	function calculateBonusAmount
 	
 	Internal function. Calculates the amount of bonus to be applied to a token purchase.
@@ -88,7 +88,7 @@ contract PromoCodes is StaffUtil {
 		return _purchasedAmount.mul(promoCodes[_promoCode].percent).div(100);
 	}
 	
-	/*
+	/**
 	function addPromoCode
 	
 	Internal function. Creates a new promo-code. 
@@ -112,7 +112,7 @@ contract PromoCodes is StaffUtil {
 		emit PromoCodeAdded(_code, _name, _percent, _maxUses, now, msg.sender);
 	}
 	
-	/*
+	/**
 	function addPromoCode
 	
 	Internal function. Removes an active promo-code. 
