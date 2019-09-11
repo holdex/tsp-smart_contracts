@@ -60,7 +60,7 @@ contract DiscountStructs is StaffUtil {
 		_;
 	}
 	
-	/*
+	/**
 	function setCrowdsale
 	
 	Connect bonus contract with distribution contract.
@@ -74,10 +74,10 @@ contract DiscountStructs is StaffUtil {
 		crowdsale = address(_crowdsale);
 	}
 	
-	/*
+	/**
 	function getBonus
 	
-	Internal function. Returns the amount of bonus a contributor received from a token purchase.
+	Internal function. Returns the amount of bonus a contributor should receive from a token purchase.
 	Parameters: 
 	_investor - contributor wallet address
 	_purchasedAmount - amount of tokens purchased in transaction
@@ -111,7 +111,7 @@ contract DiscountStructs is StaffUtil {
 		return 0;
 	}
 	
-	/*
+	/**
 	function calculateBonus
 	
 	Internal function. Calculates the amount if bonus to be allocated in a token purchase.
@@ -145,16 +145,16 @@ contract DiscountStructs is StaffUtil {
 		return 0;
 	}
 	
-	/*
+	/**
 	function addDiscountStruct
 	
 	Internal function. Creates a new bonus structure campaign.
 	Parameters: 
 	_name - campaign name
-	_tokens - amount of tokens to be allocated for tha campaign
+	_tokens - amount of tokens to be allocated for the campaign
 	_dates - start and end date
-	_fromWei - minimal amount of ETH requied for bonus to be applied
-	_toWei - maximal amount of ETH requied for bonus to be applied
+	_fromWei - minimal amount of ETH requried for bonus to be applied
+	_toWei - maximal amount of ETH required for bonus to be applied
 	_percent - bonus percent allocated per purchase
 	*/
 	
@@ -183,7 +183,7 @@ contract DiscountStructs is StaffUtil {
 		emit DiscountStructAdded(index, _name, _tokens, _dates, _fromWei, _toWei, _percent, now, msg.sender);
 	}
 	
-	/*
+	/**
 	function removeDiscountStruct
 	
 	Internal function. Discontinues a bonus structure campaign.
