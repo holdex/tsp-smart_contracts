@@ -736,7 +736,7 @@ contract Crowdsale is StaffUtil {
 	/**
 	function transferHoldexOwnership
 
-	Transfer holdex owner address of holdex
+	Transfer holdex ownership to another address
 	*/
 
 	function transferHoldexOwnership(address _holdexOwner) external {
