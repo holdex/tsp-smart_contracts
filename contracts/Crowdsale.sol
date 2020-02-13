@@ -19,6 +19,7 @@ contract Crowdsale is StaffUtil {
 	IDiscountPhases discountPhasesContract;
 	IDiscountStructs discountStructsContract;
 
+	address holdexOwner;
 	ICommission commissionContract;
 	uint256 referralBonusPercent;
 	uint256 startDate;
@@ -121,6 +122,8 @@ contract Crowdsale is StaffUtil {
 		discountStructsContract = IDiscountStructs(addressArgs[2]);
 		commissionContract = ICommission(addressArgs[4]);
 
+		holdexOwner = msg.sender;
+
 		require(startDate < crowdsaleStartDate);
 		require(crowdsaleStartDate < endDate);
 		require(tokenDecimals > 0);
@@ -129,14 +132,14 @@ contract Crowdsale is StaffUtil {
 		require(minPurchaseInWei <= maxInvestorContributionInWei);
 		require(address(commissionContract) != address(0));
 	}
-	
+
 	/**
 	function getState
 	
 	Returns information about the current state of the smart contract. 
 	Ex.: paused, finalized, start and end-date, amount of tokens distributed etc.
 	*/
-	
+
 	function getState() external view returns (bool[2] memory boolArgs, uint256[18] memory uint256Args, address[6] memory addressArgs) {
 		boolArgs[0] = paused;
 		boolArgs[1] = finalized;
@@ -166,40 +169,40 @@ contract Crowdsale is StaffUtil {
 		addressArgs[5] = address(tokenContract);
 		return (boolArgs, uint256Args, addressArgs);
 	}
-	
+
 	/**
 	function fitsTokensForSaleCap
 	
 	Ensures the token purchase doesn’t exceed the total amount of tokens available for sale.
 	*/
-	
+
 	function fitsTokensForSaleCap(uint256 _amount) public view returns (bool) {
 		return getDistributedTokens().add(_amount) <= getTokensForSaleCap();
 	}
-	
+
 	/**
 	function getTokensForSaleCap
 	
 	Returns amount of available tokens for sale.
 	*/
-	
+
 	function getTokensForSaleCap() public view returns (uint256) {
 		if (address(tokenContract) != address(0)) {
 			return tokenContract.balanceOf(address(this));
 		}
 		return tokensForSaleCap;
 	}
-	
+
 	/**
 	function getDistributedTokens
 	
 	Return the amount of distributed tokens.
 	*/
-	
+
 	function getDistributedTokens() public view returns (uint256) {
 		return soldTokens.sub(claimedSoldTokens).add(bonusTokens.sub(claimedBonusTokens)).add(sentTokens.sub(claimedSentTokens));
 	}
-	
+
 	/**
 	function setTokenContract
 	
@@ -207,14 +210,14 @@ contract Crowdsale is StaffUtil {
 	Parameter: 
 	ERC20Token - must be a valid ERC-20 token address
 	*/
-	
+
 	function setTokenContract(ERC20Token token) external onlyOwner {
 		require(token.decimals() == tokenDecimals);
 		require(address(tokenContract) == address(0));
 		require(address(token) != address(0));
 		tokenContract = token;
 	}
-	
+
 	/**
 	function getInvestorClaimedTokens
 	
@@ -222,14 +225,14 @@ contract Crowdsale is StaffUtil {
 	Parameter: 
 	_investor - contributor address
 	*/
-	
+
 	function getInvestorClaimedTokens(address _investor) external view returns (uint256) {
 		if (address(tokenContract) != address(0)) {
 			return tokenContract.balanceOf(_investor);
 		}
 		return 0;
 	}
-	
+
 	/**
 	function whitelistInvestors
 	
@@ -238,7 +241,7 @@ contract Crowdsale is StaffUtil {
 	Parameter: 
 	_investors - contributor address (single or multiple)
 	*/
-	
+
 	function whitelistInvestors(address[] calldata _investors) external onlyOwnerOrStaff {
 		for (uint256 i = 0; i < _investors.length; i++) {
 			if (_investors[i] != address(0) && investors[_investors[i]].status != InvestorStatus.WHITELISTED) {
@@ -247,15 +250,15 @@ contract Crowdsale is StaffUtil {
 			}
 		}
 	}
-	
+
 	/**
 	function blockInvestors
-	
+
 	Block a single or multiple contributors addresses from token purchase.
-	Parameter: 
+	Parameter:
 	_investors - contributor address (single or multiple)
 	*/
-	
+
 	function blockInvestors(address[] calldata _investors) external onlyOwnerOrStaff {
 		for (uint256 i = 0; i < _investors.length; i++) {
 			if (_investors[i] != address(0) && investors[_investors[i]].status != InvestorStatus.BLOCKED) {
@@ -264,87 +267,87 @@ contract Crowdsale is StaffUtil {
 			}
 		}
 	}
-	
+
 	/**
 	function setPurchasedTokensClaimLockDate
-	
+
 	Defines a date from which token claim will be allowed over purchased tokens.
 	The date can be both in past and future. A date in past will enable the claim right away.
-	Parameter: 
+	Parameter:
 	_date - date timestamp
 	*/
-	
+
 	function setPurchasedTokensClaimLockDate(uint _date) external onlyOwner {
 		purchasedTokensClaimDate = _date;
 	}
-	
+
 	/**
 	function setBonusTokensClaimLockDate
-	
+
 	Defines a date from which token claim will be allowed over bonus tokens.
 	The date can be both in past and future. A date in past will enable the claim right away.
-	Parameter: 
+	Parameter:
 	_date - date timestamp
 	*/
-	
+
 	function setBonusTokensClaimLockDate(uint _date) external onlyOwner {
 		bonusTokensClaimDate = _date;
 	}
-	
+
 	/**
 	function setCrowdsaleStartDate
-	
+
 	Defines a date from which token purchase will be enabled for all whitelisted addresses.
-	Parameter: 
+	Parameter:
 	_date - date timestamp
 	*/
-	
+
 	function setCrowdsaleStartDate(uint256 _date) external onlyOwner {
 		crowdsaleStartDate = _date;
 	}
-	
+
 	/**
 	function setEndDate
-	
+
 	Defines the crowdsale end-date.
-	Parameter: 
+	Parameter:
 	_date - date timestamp
 	*/
-	
+
 	function setEndDate(uint256 _date) external onlyOwner {
 		endDate = _date;
 	}
-	
+
 	/**
 	function setMinPurchaseInWei
-	
+
 	Defines the minimal amount of ETH that any whitelisted contributor can purchase tokens with.
-	Parameter: 
+	Parameter:
 	_minPurchaseInWei - amount in WEI
 	*/
-	
+
 	function setMinPurchaseInWei(uint256 _minPurchaseInWei) external onlyOwner {
 		minPurchaseInWei = _minPurchaseInWei;
 	}
-	
+
 	/**
 	function setMaxInvestorContributionInWei
-	
+
 	Defines the maximum amount of contribution that any whitelisted address can make.
-	Parameter: 
+	Parameter:
 	_maxInvestorContributionInWei - amount in WEI
 	*/
-	
+
 	function setMaxInvestorContributionInWei(uint256 _maxInvestorContributionInWei) external onlyOwner {
 		require(minPurchaseInWei <= _maxInvestorContributionInWei);
 		maxInvestorContributionInWei = _maxInvestorContributionInWei;
 	}
-	
+
 	/**
 	function changeTokenRate
-	
+
 	Changes the amount of tokens distributed for 1 ETH.
-	Parameter: 
+	Parameter:
 	_tokenRate - token amount
 	*/
 
@@ -352,19 +355,19 @@ contract Crowdsale is StaffUtil {
 		require(_tokenRate > 0);
 		tokenRate = _tokenRate;
 	}
-	
+
 	/**
 	function buyTokens
-	
+
 	Token purchase function.
-	Parameters: 
+	Parameters:
 	_promoCode - promo-code
 	_referrer - referrer address
 	_discountId - bonusId
 	_holdex - true/false. (defines whether contribution is subject to commission)
 	_partners - list of partners that will receive commision
 	*/
-	
+
 	function buyTokens(bytes32 _promoCode, address _referrer, uint _discountId, bool _holdex, bytes32[] calldata _partners) external payable {
 		require(!finalized, "crowdsale is finalized");
 		require(!paused, "crowdsale is paused");
@@ -454,16 +457,16 @@ contract Crowdsale is StaffUtil {
 		// forward eth to commission contract
 		commissionContract.transfer.value(msg.value)(_holdex, _partners);
 	}
-	
+
 	/**
 	function sendTokens
-	
+
 	Airdrop tokens to any whitelisted address.
-	Parameters: 
+	Parameters:
 	_investor - wallet address
 	_amount - amount of tokens to be transferred
 	*/
-	
+
 	function sendTokens(address _investor, uint256 _amount) external onlyOwner {
 		require(investors[_investor].status == InvestorStatus.WHITELISTED);
 		require(_amount > 0);
@@ -483,13 +486,13 @@ contract Crowdsale is StaffUtil {
 			msg.sender
 		);
 	}
-	
+
 	/**
 	function burnUnsoldTokens
-	
+
 	Burns all remaining tokens from distirbution contract address.
 	*/
-	
+
 	function burnUnsoldTokens() external onlyOwner {
 		require(address(tokenContract) != address(0));
 		require(finalized);
@@ -499,11 +502,11 @@ contract Crowdsale is StaffUtil {
 
 		tokenContract.burn(tokensToBurn);
 	}
-	
+
 	/**
 	function claimTokens
-	
-	Calling this function will transfer tokens from distribution contract address to the contributor calling it. 
+
+	Calling this function will transfer tokens from distribution contract address to the contributor calling it.
 	The token amount will be taken from distribution contract ledger.
 	*/
 
@@ -583,13 +586,13 @@ contract Crowdsale is StaffUtil {
 		require(clPurchasedTokens > 0 || clBonusTokens_ > 0 || clRefTokens > 0 || clReceivedTokens > 0);
 		emit TokensClaimed(msg.sender, clPurchasedTokens, clBonusTokens_, clRefTokens, clReceivedTokens, now, msg.sender);
 	}
-	
+
 	/**
 	function refundTokensPurchase
-	
-	Refund ETH in exchange of a single token purchase to the contributor. 
+
+	Refund ETH in exchange of a single token purchase to the contributor.
 	If tokens were already claimed, the refund is not possible.
-	Parameters: 
+	Parameters:
 	_investor - wallet address
 	_purchaseId - ID of the transaction recorded in distribution contract ledger
 	*/
@@ -603,13 +606,13 @@ contract Crowdsale is StaffUtil {
 		// forward eth to investor's wallet address
 		_investor.transfer(msg.value);
 	}
-	
+
 	/**
 	function refundAllInvestorTokensPurchases
-	
-	Refund ETH in exchange of all pruchased tokens to the contributor. 
+
+	Refund ETH in exchange of all pruchased tokens to the contributor.
 	If tokens were already claimed, the refund is not possible.
-	Parameters: 
+	Parameters:
 	_investor - contributor wallet address
 	*/
 
@@ -628,8 +631,8 @@ contract Crowdsale is StaffUtil {
 		// forward eth to investor's wallet address
 		_investor.transfer(msg.value);
 	}
-	
-	
+
+
 	function _refundTokensPurchase(address _investor, uint _purchaseId) private {
 		// update referrer's referral tokens
 		address referrer = investors[_investor].tokensPurchases[_purchaseId].referrer;
@@ -668,28 +671,28 @@ contract Crowdsale is StaffUtil {
 		// log investor's tokens purchase refund
 		emit TokensPurchaseRefunded(_investor, _purchaseId, purchaseValue, purchaseAmount, bonusAmount, now, msg.sender);
 	}
-	
+
 	/**
 	function getInvestorTokensPurchasesLength
-	
+
 	Return the amount of pruchased transactions made by a single contributor.
-	Parameters: 
+	Parameters:
 	_investor - contributor wallet address
 	*/
-	
+
 	function getInvestorTokensPurchasesLength(address _investor) public view returns (uint) {
 		return investors[_investor].tokensPurchases.length;
 	}
-	
+
 	/**
 	function getInvestorTokensPurchase
-	
+
 	Returns information about contributor token purchase, bonuses and referrer bonus.
-	Parameters: 
+	Parameters:
 	_investor - contributor wallet address
 	_purchaseId - ID of the transaction recorded in distribution contract ledger
 	*/
-	
+
 	function getInvestorTokensPurchase(
 		address _investor,
 		uint _purchaseId
@@ -706,27 +709,53 @@ contract Crowdsale is StaffUtil {
 		referrer = investors[_investor].tokensPurchases[_purchaseId].referrer;
 		referrerSentAmount = investors[_investor].tokensPurchases[_purchaseId].referrerSentAmount;
 	}
-	
+
 	/**
 	function setPaused
-	
-	Pauses token distribution contract work. Any purchase or claim is prohibited during pause. 
+
+	Pauses token distribution contract work. Any purchase or claim is prohibited during pause.
 	Call this function again to resume contract work.
-	Parameter: 
+	Parameter:
 	p - true/false
 	*/
-	
+
 	function setPaused(bool p) external onlyOwner {
 		paused = p;
 	}
-	
+
 	/**
 	function finalize
-	
+
 	Finalizes token distribution contract work. This action can't be reverted.
 	*/
-	
+
 	function finalize() external onlyOwner {
 		finalized = true;
+	}
+
+	/**
+	function transferHoldexOwnership
+
+	Transfer holdex ownership to another address
+	*/
+
+	function transferHoldexOwnership(address _holdexOwner) external {
+		require(msg.sender == holdexOwner, 'not authorized');
+		require(_holdexOwner != address(0), 'invalid holdex owner');
+
+		holdexOwner = _holdexOwner;
+	}
+
+	/**
+	function changeCommissionSC
+
+	Changes the commission contract
+	*/
+
+	function changeCommissionSC(ICommission _commissionSC) external {
+		require(msg.sender == holdexOwner, 'not authorized');
+		require(address(_commissionSC) != address(0), 'invalid commission sc');
+
+		commissionContract = _commissionSC;
 	}
 }
